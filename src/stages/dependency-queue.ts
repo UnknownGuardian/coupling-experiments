@@ -1,6 +1,7 @@
 import { Stage, Event, stats, FIFOQueue, metronome } from "@byu-se/quartermaster";
 import { SAMPLE_DURATION } from "..";
 import { mean } from "../util";
+import { Z } from "./z";
 
 export type FullQueueEvent = Event & { dependencyQueueFull: boolean }
 
@@ -16,12 +17,12 @@ export class DependencyQueue extends Stage {
   public tries: number[] = [];
 
 
-  constructor(protected wrapped: Stage) {
+  constructor(protected wrapped: Z) {
     super();
     metronome.setInterval(() => {
       stats.record("meanLatencyFromZ", mean(this.latencies));
       stats.record("meanAvailabilityFromZ", mean(this.availabilities));
-      stats.record("poolSize", this.inQueue.getCapacity() || 0);
+      stats.record("poolSize", this.inQueue.getNumWorkers() || 0);
       stats.record("poolUsage", -1);
       stats.record("meanQueueWaitTime", mean(this.queueTimes));
       stats.record("queueSize", this.inQueue instanceof FIFOQueue ? this.inQueue.length() : -1);

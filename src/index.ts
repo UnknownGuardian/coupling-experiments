@@ -30,22 +30,22 @@ export const SAMPLE_DURATION = 500 * TICK_DILATION;
 
 run();
 async function run(): Promise<void> {
-  //await runExperiment("A", varyLoad, createNaiveModel);
-  //await runExperiment("B", varyLoad, createLoadLevelingModel);
-  //await runExperiment("C", varyLoad, createLoadSheddingModel);
-  //await runExperiment("D", varyLoad, createSmartLoadSheddingModel);
+  await runExperiment("A", varyLoad, createNaiveModel);
+  await runExperiment("B", varyLoad, createLoadLevelingModel);
+  await runExperiment("C", varyLoad, createLoadSheddingModel);
+  await runExperiment("D", varyLoad, createSmartLoadSheddingModel);
 
 
-  //await runExperiment("E", intermittentAvailability, createRequestCachingModel);
-  //await runExperiment("F", intermittentAvailability, createAsyncCacheLoadingModel); // not in original
+  await runExperiment("E", intermittentAvailability, createRequestCachingModel);
+  await runExperiment("F", intermittentAvailability, createAsyncCacheLoadingModel); // not in original
 
-  //await runExperiment("F", increaseLatency, createAsyncCacheLoadingModel);
-  //await runExperiment("G", increaseLatency, createPerRequestTimeoutModel);
+  await runExperiment("F", increaseLatency, createAsyncCacheLoadingModel);
+  await runExperiment("G", increaseLatency, createPerRequestTimeoutModel);
 
-  //await runExperiment("H", decreasingAvailability, createRetriesModel);
-  //await runExperiment("I", decreasingAvailability, createInfiniteRetriesModel);
+  await runExperiment("H", decreasingAvailability, createRetriesModel);
+  await runExperiment("I", decreasingAvailability, createInfiniteRetriesModel);
 
-  //await runExperiment("J", varyCapacity, createInferredPoolSizingModel);
+  await runExperiment("J", varyCapacity, createInferredPoolSizingModel);
   await runExperiment("K", varyCapacity, createCooperativePoolSizingModel);
 
 }

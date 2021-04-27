@@ -1,6 +1,6 @@
 import { Timeout } from "@byu-se/quartermaster";
 import { TICK_DILATION } from "../..";
-import { X, Y, DependencyQueue, Z, AgeLRUCache, TimedRetry } from "../../stages"
+import { X, Y, DependencyQueue, Z, AgeLRUCache, TimedRetry, TimedRetryDependencyQueue } from "../../stages"
 import { Model } from "../model";
 
 export type RetriesModel = Model<{
@@ -8,9 +8,9 @@ export type RetriesModel = Model<{
   xyTimeout: Timeout;
   y: Y;
   cache: AgeLRUCache;
-  dependencyQueue: DependencyQueue;
-  yzTimeout: Timeout;
-  retry: TimedRetry;
+  dependencyQueue: TimedRetryDependencyQueue;
+  //yzTimeout: Timeout;
+  //retry: TimedRetry;
   z: Z;
 }>
 
@@ -18,9 +18,10 @@ export type RetriesModel = Model<{
 //       timed retry will hammer Z because of immediate rejection behavior.
 export function createRetriesModel(): RetriesModel {
   const z = new Z();
-  const retry = new TimedRetry(z);
-  const yzTimeout = new Timeout(retry);
-  const dependencyQueue = new DependencyQueue(retry);
+  //const retry = new TimedRetry(z);
+  //const yzTimeout = new Timeout(retry);
+  //const dependencyQueue = new DependencyQueue(yzTimeout);
+  const dependencyQueue = new TimedRetryDependencyQueue(z);
   const cache = new AgeLRUCache(dependencyQueue);
   const y = new Y(cache);
   const xyTimeout = new Timeout(y);
@@ -30,12 +31,12 @@ export function createRetriesModel(): RetriesModel {
   cache.capacity = 1000; // 68% of the keyspace
 
   xyTimeout.timeout = 100 * TICK_DILATION
-  yzTimeout.timeout = 97 * TICK_DILATION
-  retry.maxRetryTime = 96 * TICK_DILATION
+  dependencyQueue.timeout = 97 * TICK_DILATION
+  dependencyQueue.maxRetryTime = 96 * TICK_DILATION
 
   return {
     name: "Retries",
     entry: x,
-    stages: { x, xyTimeout, y, cache, dependencyQueue, yzTimeout, retry, z }
+    stages: { x, xyTimeout, y, cache, dependencyQueue, /*yzTimeout, retry,*/ z }
   }
 }

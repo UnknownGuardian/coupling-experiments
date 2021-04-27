@@ -16,11 +16,19 @@ export function increaseLatency(model: Model<{ z: Z }>): Scenario {
   simulation.keyspaceStd = 500;
 
 
+  // linear function
+  metronome.setInterval(() => {
+    model.stages.z.mean = 15 + (metronome.now() * 0.0005 / TICK_DILATION);
+  }, 10)
+
+  // step function
+  /*
   metronome.setTimeout(() => model.stages.z.mean = 15, 1);
   metronome.setTimeout(() => model.stages.z.mean = 25, 15000 * TICK_DILATION);
   metronome.setTimeout(() => model.stages.z.mean = 30, 30000 * TICK_DILATION);
   metronome.setTimeout(() => model.stages.z.mean = 35, 45000 * TICK_DILATION);
   metronome.setTimeout(() => model.stages.z.mean = 45, 60000 * TICK_DILATION);
+  */
 
   return {
     name: "IncreaseLatency"

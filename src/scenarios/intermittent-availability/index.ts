@@ -17,12 +17,22 @@ export function intermittentAvailability(model: Model<{ z: Z }>): Scenario {
   simulation.keyspaceMean = 10000;
   simulation.keyspaceStd = 500;
 
+
+  // sine wave between 0 and 1
+  metronome.setInterval(() => {
+    const availability = 0.5 + 0.5 * Math.sin(0.0005 * metronome.now() / TICK_DILATION);
+    model.stages.z.availability = availability;
+  }, 10)
+
+  // step function
+  /*
   metronome.setTimeout(() => model.stages.z.availability = 1, 1);
   metronome.setTimeout(() => model.stages.z.availability = 0.60, 10000 * TICK_DILATION);
   metronome.setTimeout(() => model.stages.z.availability = 0.85, 30000 * TICK_DILATION);
   metronome.setTimeout(() => model.stages.z.availability = 0.70, 50000 * TICK_DILATION);
   metronome.setTimeout(() => model.stages.z.availability = 0.95, 65000 * TICK_DILATION);
   metronome.setTimeout(() => model.stages.z.availability = 0.25, 70000 * TICK_DILATION);
+  */
 
   return {
     name: "IntermittentAvailability"

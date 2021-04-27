@@ -4,6 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
+    "start": "node --max-old-space-size=4096 -- node_modules/.bin/ts-node -P tsconfig.json src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
