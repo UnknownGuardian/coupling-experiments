@@ -14,6 +14,8 @@ export class X extends Stage {
   public load: number = 0;
   public latencies: number[] = [];
   public availabilities: number[] = [];
+  public events: Event[] = [];
+
 
   // internal behavior
   public beforeHook: Hook | null = null;
@@ -25,8 +27,11 @@ export class X extends Stage {
       stats.record("loadFromSimulation", this.load);
       stats.record("meanLatencyFromY", mean(this.latencies));
       stats.record("meanAvailabilityFromY", mean(this.availabilities));
+      stats.record("events", this.events);
       this.load = 0;
       this.latencies = [];
+      this.availabilities = [];
+      this.events = [];
     }, SAMPLE_DURATION)
   }
 
@@ -49,6 +54,7 @@ export class X extends Stage {
       this.availabilities.push(0);
       throw e;
     } finally {
+      this.events.push(event);
       this.latencies.push(metronome.now() - n)
     }
   }

@@ -41,8 +41,12 @@ export class Z extends Stage {
     }
 
     // don't overwrite previous value if timeout
-    if (typeof (event as any).value === 'undefined')
+    if (typeof (event as any).value === 'undefined') {
       (event as any).value = 1;
+    }
+    if (typeof (event as any).age === 'undefined') {
+      (event as any).age = 0;
+    }
   }
 
   getLatency() {

@@ -3,7 +3,7 @@ import { TICK_DILATION } from "..";
 import { mean, bound } from "../util";
 import { DependencyQueue } from "./dependency-queue";
 
-export class HistoricalDependencyQueue extends DependencyQueue {
+export class InferredDependencyQueue extends DependencyQueue {
   public times: number[] = [];
   public MIN_WORKERS = 1;
   public MAX_WORKERS = 50;

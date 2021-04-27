@@ -1,7 +1,7 @@
 import { Event } from "@byu-se/quartermaster";
 import { DependencyQueue } from "./dependency-queue";
 
-export class InformedDependencyQueue extends DependencyQueue {
+export class CooperativeDependencyQueue extends DependencyQueue {
 
   async workOn(event: Event & { capacity: number } & { tries: number }): Promise<void> {
     return super.workOn(event).finally(() => {

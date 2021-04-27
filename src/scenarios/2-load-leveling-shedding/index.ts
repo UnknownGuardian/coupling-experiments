@@ -19,11 +19,12 @@ export function createLoadLevelingSheddingScenario(model: Model<{ y: Y, dependen
   // sine wave
   metronome.setInterval(() => {
     const rate = (800 + 500 * Math.sin(0.0005 * metronome.now() / TICK_DILATION))
+    //const rate = (900 + 300 * Math.sin(0.0005 * metronome.now() / TICK_DILATION))
     simulation.eventsPer1000Ticks = rate / TICK_DILATION
   }, 10);
 
-  model.stages.y.inQueue = new FIFOQueue(1000, 28);  // the load Y is provisioned to handle
-  model.stages.dependencyQueue.inQueue = new FIFOQueue(1000, 28);  // the load to send to Z
+  //model.stages.y.inQueue = new FIFOQueue(1000, 28);  // the load Y is provisioned to handle
+  model.stages.dependencyQueue.inQueue = new FIFOQueue(200, 28);  // the load to send to Z
   model.stages.z.inQueue = new FIFOQueue(Infinity, 28);  // the load Z is provisioned to handle
 
   return {

@@ -1,9 +1,18 @@
-import { Event, metronome, LRUCache, CacheItem } from "@byu-se/quartermaster";
+import { Event, metronome, LRUCache, CacheItem, Stage, stats } from "@byu-se/quartermaster";
+import { SAMPLE_DURATION } from "..";
+import { mean } from "../util";
 
 type AgeEvent = Event & { age: number }
 
 export class AgeLRUCache extends LRUCache {
-  public recentDependencyLatencies: number[] = [];
+  constructor(protected wrapped: Stage) {
+    super(wrapped);
+    metronome.setInterval(() => {
+      const store: Record<string, CacheItem> = this.getStore();
+      const ages = Object.values(store).map(x => metronome.now() - x.time)
+      stats.record("avgCacheAge", mean(ages));
+    }, SAMPLE_DURATION)
+  }
 
   async workOn(event: AgeEvent): Promise<void> {
     const cached = this.get(event.key) as CacheItem;
@@ -12,8 +21,7 @@ export class AgeLRUCache extends LRUCache {
       return
     }
 
-    const n = metronome.now();
-    await this.wrapped.accept(event).finally(() => this.recentDependencyLatencies.push(metronome.now() - n));
+    await this.wrapped.accept(event);
     this.set(event.key, { time: metronome.now() });
     // otherwise we have it in the cache and return it
     event.age = 0;

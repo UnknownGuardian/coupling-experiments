@@ -29,6 +29,7 @@ export class DependencyQueue extends Stage {
       stats.record("queueRejectCount", this.queueRejectCount);
       stats.record("meanTriesPerRequest", mean(this.tries));
       this.latencies = [];
+      this.availabilities = [];
       this.queueTimes = [];
       this.enqueueCount = 0;
       this.queueRejectCount = 0;

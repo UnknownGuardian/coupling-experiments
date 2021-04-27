@@ -1,7 +1,7 @@
-import { metronome, simulation } from "@byu-se/quartermaster";
+import { metronome, simulation, LRUCache } from "@byu-se/quartermaster";
 import { TICK_DILATION } from "../..";
 import { Model } from "../../models";
-import { AgeLRUCache, Z } from "../../stages";
+import { Z } from "../../stages";
 import { Scenario } from "../scenario";
 
 /**
@@ -10,7 +10,7 @@ import { Scenario } from "../scenario";
  * @param model 
  * @returns 
  */
-export function createImpatientClientScenario(model: Model<{ cache: AgeLRUCache, z: Z }>): Scenario {
+export function createImpatientClientScenario(model: Model<{ cache: LRUCache, z: Z }>): Scenario {
   simulation.eventsPer1000Ticks = 400 / TICK_DILATION;
   simulation.keyspaceMean = 10000;
   simulation.keyspaceStd = 500;

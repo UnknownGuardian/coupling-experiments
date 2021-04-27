@@ -1,4 +1,5 @@
 import { WrappedStage, Event, metronome } from "@byu-se/quartermaster";
+import { TICK_DILATION } from "..";
 type IndividualTimeoutEvent = Event & { timeout: number }
 /**
  * Limit the amount of time to wait for a response from the wrapped stage
@@ -6,7 +7,7 @@ type IndividualTimeoutEvent = Event & { timeout: number }
  * doesn't have one.
  */
 export class PerRequestTimeout extends WrappedStage {
-  public timeout: number = 300;
+  public timeout: number = 300 * TICK_DILATION;
   async workOn(event: IndividualTimeoutEvent): Promise<void> {
     const actualTimeout = event.timeout || this.timeout
     const tookTooLong = metronome.wait(actualTimeout).then(() => {

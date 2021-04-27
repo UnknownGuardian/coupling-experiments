@@ -22,7 +22,7 @@ export function createLoadLevelingScenario(model: Model<{ y: Y, dependencyQueue:
     simulation.eventsPer1000Ticks = rate / TICK_DILATION
   }, 10);
 
-  model.stages.y.inQueue = new FIFOQueue(Infinity, 28);  // the load Y is provisioned to handle
+  //model.stages.y.inQueue = new FIFOQueue(Infinity, 28);  // the load Y is provisioned to handle
   model.stages.dependencyQueue.inQueue = new FIFOQueue(Infinity, 28);  // the load to send to Z
   model.stages.z.inQueue = new FIFOQueue(Infinity, 28);  // the load Z is provisioned to handle
 

@@ -1,8 +1,7 @@
 import { metronome, Retry, simulation, Timeout } from "@byu-se/quartermaster";
 import { Model } from "../../models";
-import { AgeLRUCache, FullQueueEvent, Z } from "../../stages";
+import { AgeLRUCache, ConditionalRetry, Z } from "../../stages";
 import { createAvailabilityRetriesScenario, Scenario } from "../";
-import { ConditionalRetry } from "../../stages/conditional-retry";
 import { TICK_DILATION } from "../..";
 
 /**
