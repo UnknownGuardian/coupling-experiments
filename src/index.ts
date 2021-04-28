@@ -39,18 +39,18 @@ async function run(): Promise<void> {
   //await runExperiment("A", intermittentAvailability, createNaiveModel);
   //await runExperiment("E", intermittentAvailability, createRequestCachingModel);
   //await runExperiment("F", intermittentAvailability, createAsyncCacheLoadingModel); // not in original
-  await runExperiment("H", intermittentAvailability, createRetriesModel);
-  await runExperiment("I", intermittentAvailability, createInfiniteRetriesModel);
+  //await runExperiment("H", intermittentAvailability, createRetriesModel);
+  //await runExperiment("I", intermittentAvailability, createInfiniteRetriesModel);
 
   //await runExperiment("A", increaseLatency, createNaiveModel);
   //await runExperiment("F", increaseLatency, createAsyncCacheLoadingModel);
-  //await runExperiment("G", increaseLatency, createPerRequestTimeoutModel);
+  await runExperiment("G", increaseLatency, createPerRequestTimeoutModel);
 
   //await runExperiment("A", decreasingAvailability, createNaiveModel);
   //await runExperiment("H", decreasingAvailability, createRetriesModel);
   //await runExperiment("I", decreasingAvailability, createInfiniteRetriesModel);
-  await runExperiment("E", decreasingAvailability, createRequestCachingModel);
-  await runExperiment("F", decreasingAvailability, createAsyncCacheLoadingModel); // not in original
+  //await runExperiment("E", decreasingAvailability, createRequestCachingModel);
+  //await runExperiment("F", decreasingAvailability, createAsyncCacheLoadingModel); // not in original
 
   //await runExperiment("A", varyCapacity, createNaiveModel);
   //await runExperiment("J", varyCapacity, createInferredPoolSizingModel);
@@ -109,17 +109,26 @@ function getRows(): Row[] {
   return tick.map<Row>((_, index) => {
     const subsetEvents = optionalArray<Event>(events, index, []);
     const successSubset = subsetEvents.filter(e => e.response === "success")
+    const meanResponseAge: number = mean(successSubset.map(e => (e as any).age));
+    const meanResponseCacheAge: number = mean(successSubset.map(e => (e as any).age).filter(age => age > 0));
+
     const priority1 = subsetEvents.filter(e => (e as any).priority == 0);
     const priority2 = subsetEvents.filter(e => (e as any).priority == 1);
     const priority3 = subsetEvents.filter(e => (e as any).priority == 2);
-    const meanResponseAge: number = mean(successSubset.map(e => (e as any).age));
-    const meanResponseCacheAge: number = mean(successSubset.map(e => (e as any).age).filter(age => age > 0));
     const meanResponseP1Availability: number = mean(priority1.map(e => e.response === "success" ? 1 : 0));
     const meanResponseP2Availability: number = mean(priority2.map(e => e.response === "success" ? 1 : 0));
     const meanResponseP3Availability: number = mean(priority3.map(e => e.response === "success" ? 1 : 0));
     const meanResponseP1Latency: number = mean(priority1.map(e => e.responseTime.endTime - e.responseTime.startTime));
     const meanResponseP2Latency: number = mean(priority2.map(e => e.responseTime.endTime - e.responseTime.startTime));
     const meanResponseP3Latency: number = mean(priority3.map(e => e.responseTime.endTime - e.responseTime.startTime));
+
+    const gFast = subsetEvents.filter(e => (e as any).readAtTimeName == "fast");
+    const gMedium = subsetEvents.filter(e => (e as any).readAtTimeName == "medium");
+    const gSlow = subsetEvents.filter(e => (e as any).readAtTimeName == "slow");
+    const meanResponseGFastLatency: number = mean(gFast.map(e => e.responseTime.endTime - e.responseTime.startTime));
+    const meanResponseGMediumLatency: number = mean(gMedium.map(e => e.responseTime.endTime - e.responseTime.startTime));
+    const meanResponseGSlowLatency: number = mean(gSlow.map(e => e.responseTime.endTime - e.responseTime.startTime));
+
     return {
       tick: tick[index],
       loadFromSimulation: loadFromSimulation[index],
@@ -149,6 +158,9 @@ function getRows(): Row[] {
       meanResponseP1Latency,
       meanResponseP2Latency,
       meanResponseP3Latency,
+      meanResponseGFastLatency,
+      meanResponseGMediumLatency,
+      meanResponseGSlowLatency
     }
   })
 }

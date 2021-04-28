@@ -1,10 +1,17 @@
-import { Event, Queue, Worker } from "@byu-se/quartermaster";
+import { Event, Queue, stats, Worker } from "@byu-se/quartermaster";
 
 
 type Item = { callback: Function, event: Event };
 
 /**
- * A FIFO queue implementation.
+ * A Priority queue implementation, differing from typical implementations by
+ * 1) accepts all incoming events
+ * 2) immediately sorting
+ * 3) evicting events if the queue is over capacity
+ * 
+ * Instead of
+ * 1) only accepting events if there is room
+ * 2) sorting accepted events
  */
 export class PriorityQueue implements Queue {
   // highest priority first, default to FIFO
@@ -27,11 +34,11 @@ export class PriorityQueue implements Queue {
           resolve(data);
       }
       this.add({ event, callback });
-
     })
   }
   isFull(): boolean {
-    return this.items.length >= this.capacity
+    // a priority queue, since it can evict, can never be full
+    return false
   }
   hasFreeWorker(): boolean {
     return this.workers.some(w => w.event == null);
@@ -41,10 +48,26 @@ export class PriorityQueue implements Queue {
   }
 
   add(item: Item): void {
-    if (this.isFull())
-      throw "fail"
-
+    // always push
     this.items.push(item);
+
+    // sort
+    this.items.sort((a, b) => this.priority(b.event) - this.priority(a.event));
+
+
+    this.items.length > 190 && console.log(this.items.length, this.capacity)
+
+    // if more than full (full means 10 items in a 10 capacity, we only want to trigger if 11)
+    if (this.items.length > this.capacity) {
+      // evict something by evicting the last thing in the queue
+      const lastItem = this.items.pop() as Item;
+
+      // let it know its been failed
+      lastItem.callback('fail', null);
+      //stats.add(`eviction-priority-${(<any>lastItem.event)["priority"]}`, 1)
+    }
+
+    // trigger our work check
     this.work();
   }
 
@@ -55,8 +78,7 @@ export class PriorityQueue implements Queue {
     if (!this.hasWorkToDo())
       return;
 
-    // sort
-    this.items.sort((a, b) => this.priority(b.event) - this.priority(a.event));
+
 
     const nextUp: Item = this.items.shift() as Item
     const worker = this.workers.find(w => w.event == null) as Worker;

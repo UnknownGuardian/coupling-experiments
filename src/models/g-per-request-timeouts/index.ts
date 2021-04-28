@@ -19,8 +19,10 @@ export function createPerRequestTimeoutModel(): PerRequestTimeoutModel {
   const x = new X(y);
 
   x.beforeHook = (event: Event) => {
-    const e = event as Event & { readAtTime: number }
-    e.readAtTime = Math.floor(30 + Math.random() * 10) * TICK_DILATION;
+    const e = event as Event & { readAtTime: number; readAtTimeName: string }
+    const key = parseInt(event.key.slice(2));
+    e.readAtTime = [25, 30, 35][key % 3] * TICK_DILATION;
+    e.readAtTimeName = ["fast", "medium", "slow"][key % 3];
   }
 
   cache.ttl = 10000 * TICK_DILATION;
