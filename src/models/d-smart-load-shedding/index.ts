@@ -1,4 +1,4 @@
-import { Event } from "@byu-se/quartermaster";
+import { Event, FIFOQueue } from "@byu-se/quartermaster";
 import { X, Y, DependencyQueue, Z } from "../../stages"
 import { PriorityQueue } from "../../stages/priority-queue";
 import { Model } from "../model";
@@ -25,6 +25,7 @@ export function createSmartLoadSheddingModel(): SmartLoadSheddingModel {
   const queue = new PriorityQueue(200, 28);
   queue.priority = (event: Event) => (<Event & { priority: number }>event).priority
   dependencyQueue.inQueue = queue;
+  z.inQueue = new FIFOQueue(Infinity, 28);  // the load Z is provisioned to handle
 
 
 
