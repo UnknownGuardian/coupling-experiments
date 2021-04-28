@@ -3,6 +3,7 @@ import { Model } from "../model";
 
 export type NaiveModel = Model<{
   x: X;
+  dependencyQueue: DependencyQueue;
   y: Y;
   z: Z;
 }>
@@ -16,6 +17,6 @@ export function createNaiveModel(): NaiveModel {
   return {
     name: "Naive",
     entry: x,
-    stages: { x, y, z }
+    stages: { x, y, dependencyQueue, z }
   }
 }
