@@ -1,5 +1,6 @@
-import { Event, metronome, LRUCache, CacheItem, Stage, stats } from "@byu-se/quartermaster";
-import { SAMPLE_DURATION } from "..";
+import { Event, metronome, CacheItem, Stage, stats } from "@byu-se/quartermaster";
+import { LRUCache } from "./lru-cache"
+import { SAMPLE_DURATION, TICK_DILATION } from "..";
 import { mean } from "../util";
 
 type AgeEvent = Event & { age: number }
@@ -10,7 +11,15 @@ export class AgeLRUCache extends LRUCache {
     metronome.setInterval(() => {
       const store: Record<string, CacheItem> = this.getStore();
       const ages = Object.values(store).map(x => metronome.now() - x.time)
-      stats.record("avgCacheAge", mean(ages));
+      const m = mean(ages);
+      stats.record("avgCacheAge", m);
+
+      /*if (m >= 10_000 * TICK_DILATION) {
+        console.log(store);
+        const ages = Object.keys(store).map(k => ({ key: k, age: metronome.now() - store[k].time, expired: this.isExpired(store[k]) }));
+        const order = this.order.map((k, i) => ({ index: i, key: k, age: metronome.now() - store[k].time, expired: this.isExpired(store[k]) }));
+        console.log("  -->", ages, "TTL: ", this.ttl, "order", order)
+      }*/
     }, SAMPLE_DURATION)
   }
 

@@ -15,3 +15,5 @@ export * from "./per-request-timeout"
 
 export * from "./conditional-retry";
 export * from "./timed-retry"
+
+export * from "./lru-cache";

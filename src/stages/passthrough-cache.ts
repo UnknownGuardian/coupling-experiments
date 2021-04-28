@@ -1,4 +1,5 @@
-import { Event, metronome, LRUCache, CacheItem, Stage, stats } from "@byu-se/quartermaster";
+import { Event, metronome, CacheItem, Stage, stats } from "@byu-se/quartermaster";
+import { LRUCache } from "./lru-cache"
 import { SAMPLE_DURATION, TICK_DILATION } from "..";
 import { mean } from "../util";
 
