@@ -1,5 +1,6 @@
-import { Event, metronome, LRUCache, CacheItem } from "@byu-se/quartermaster";
-import { TICK_DILATION } from "..";
+import { Event, metronome, LRUCache, CacheItem, Stage, stats } from "@byu-se/quartermaster";
+import { SAMPLE_DURATION, TICK_DILATION } from "..";
+import { mean } from "../util";
 
 type PassThroughEvent = Event & { age: number } & { readAtTime: number };
 
@@ -11,6 +12,15 @@ type PassThroughEvent = Event & { age: number } & { readAtTime: number };
  */
 export class PassthroughCache extends LRUCache {
   public readAtTime: number = 100 * TICK_DILATION; // T'yz
+
+  constructor(protected wrapped: Stage) {
+    super(wrapped);
+    metronome.setInterval(() => {
+      const store: Record<string, CacheItem> = this.getStore();
+      const ages = Object.values(store).map(x => metronome.now() - x.time)
+      stats.record("avgCacheAge", mean(ages));
+    }, SAMPLE_DURATION)
+  }
 
   /**
    * Non-blocking Call, Wait workerTimeout, Read from Cache

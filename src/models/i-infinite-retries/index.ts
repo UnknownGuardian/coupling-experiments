@@ -1,4 +1,4 @@
-import { Retry, Timeout } from "@byu-se/quartermaster";
+import { FIFOQueue, Retry, Timeout } from "@byu-se/quartermaster";
 import { TICK_DILATION } from "../..";
 import { X, Y, DependencyQueue, Z, FullQueueEvent, AgeLRUCache, ConditionalRetry } from "../../stages"
 import { Model } from "../model";
@@ -31,6 +31,9 @@ export function createInfiniteRetriesModel(): InfiniteRetriesModel {
 
   // Can this cause problems with Z's availability as it drops to 0?
   retry.attempts = Infinity;
+
+  dependencyQueue.inQueue = new FIFOQueue(200, 28);  // the load to send to Z
+  z.inQueue = new FIFOQueue(Infinity, 28);  // the load Z is provisioned to handle
 
   cache.ttl = 10000 * TICK_DILATION;
   cache.capacity = 1000; // 68% of the keyspace

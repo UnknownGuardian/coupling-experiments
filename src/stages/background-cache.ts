@@ -1,4 +1,6 @@
-import { Event, metronome, LRUCache, CacheItem } from "@byu-se/quartermaster";
+import { Event, metronome, LRUCache, CacheItem, Stage, stats } from "@byu-se/quartermaster";
+import { SAMPLE_DURATION } from "..";
+import { mean } from "../util";
 
 type AgeEvent = Event & { age: number };
 
@@ -8,6 +10,17 @@ type AgeEvent = Event & { age: number };
  * 2. Read from cache
  */
 export class BackgroundCache extends LRUCache {
+
+  constructor(protected wrapped: Stage) {
+    super(wrapped);
+    metronome.setInterval(() => {
+      const store: Record<string, CacheItem> = this.getStore();
+      const ages = Object.values(store).map(x => metronome.now() - x.time)
+      stats.record("avgCacheAge", mean(ages));
+    }, SAMPLE_DURATION)
+  }
+
+
 
   async workOn(event: AgeEvent): Promise<void> {
     // fire off call to wrap, but don't wait for call to complete
