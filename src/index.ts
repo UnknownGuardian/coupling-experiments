@@ -46,11 +46,11 @@ async function run(): Promise<void> {
   //await runExperiment("F", increaseLatency, createAsyncCacheLoadingModel);
   await runExperiment("G", increaseLatency, createPerRequestTimeoutModel);
 
-  //await runExperiment("A", decreasingAvailability, createNaiveModel);
-  //await runExperiment("H", decreasingAvailability, createRetriesModel);
-  //await runExperiment("I", decreasingAvailability, createInfiniteRetriesModel);
-  //await runExperiment("E", decreasingAvailability, createRequestCachingModel);
-  //await runExperiment("F", decreasingAvailability, createAsyncCacheLoadingModel); // not in original
+  ////await runExperiment("A", decreasingAvailability, createNaiveModel);
+  ////await runExperiment("H", decreasingAvailability, createRetriesModel);
+  ////await runExperiment("I", decreasingAvailability, createInfiniteRetriesModel);
+  ////await runExperiment("E", decreasingAvailability, createRequestCachingModel);
+  ////await runExperiment("F", decreasingAvailability, createAsyncCacheLoadingModel); // not in original
 
   //await runExperiment("A", varyCapacity, createNaiveModel);
   //await runExperiment("J", varyCapacity, createInferredPoolSizingModel);

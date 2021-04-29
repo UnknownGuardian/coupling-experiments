@@ -15,6 +15,8 @@ export function increaseLatency(model: Model<{ z: Z }>): Scenario {
   simulation.keyspaceMean = 10000;
   simulation.keyspaceStd = 500;
 
+  throw "sine wave"
+
 
   // linear function
   metronome.setInterval(() => {
