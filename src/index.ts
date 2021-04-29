@@ -42,8 +42,8 @@ async function run(): Promise<void> {
   //await runExperiment("H", varyAvailability, createRetriesModel);
   //await runExperiment("I", varyAvailability, createInfiniteRetriesModel);
 
-  await runExperiment("A", varyLatency, createNaiveModel);
-  await runExperiment("F", varyLatency, createAsyncCacheLoadingModel);
+  //await runExperiment("A", varyLatency, createNaiveModel);
+  //await runExperiment("F", varyLatency, createAsyncCacheLoadingModel);
   await runExperiment("G", varyLatency, createPerRequestTimeoutModel);
 
   ////await runExperiment("A", decreasingAvailability, createNaiveModel);
@@ -128,6 +128,9 @@ function getRows(): Row[] {
     const meanResponseGFastLatency: number = mean(gFast.map(e => e.responseTime.endTime - e.responseTime.startTime));
     const meanResponseGMediumLatency: number = mean(gMedium.map(e => e.responseTime.endTime - e.responseTime.startTime));
     const meanResponseGSlowLatency: number = mean(gSlow.map(e => e.responseTime.endTime - e.responseTime.startTime));
+    const meanResponseGFastAvailability: number = mean(gFast.map(e => e.response === "success" ? 1 : 0));
+    const meanResponseGMediumAvailability: number = mean(gMedium.map(e => e.response === "success" ? 1 : 0));
+    const meanResponseGSlowAvailability: number = mean(gSlow.map(e => e.response === "success" ? 1 : 0));
 
     return {
       tick: tick[index],
@@ -160,7 +163,10 @@ function getRows(): Row[] {
       meanResponseP3Latency,
       meanResponseGFastLatency,
       meanResponseGMediumLatency,
-      meanResponseGSlowLatency
+      meanResponseGSlowLatency,
+      meanResponseGFastAvailability,
+      meanResponseGMediumAvailability,
+      meanResponseGSlowAvailability
     }
   })
 }

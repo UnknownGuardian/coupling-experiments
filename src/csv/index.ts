@@ -41,6 +41,9 @@ export type Row = {
   meanResponseGFastLatency: number, // R
   meanResponseGMediumLatency: number, // R
   meanResponseGSlowLatency: number, // R
+  meanResponseGFastAvailability: number, // R
+  meanResponseGMediumAvailability: number, // R
+  meanResponseGSlowAvailability: number, // R
 }
 export function write(filename: String, rows: Row[]): void {
   //console.log(rows);
