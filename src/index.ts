@@ -18,8 +18,8 @@ import {
 import {
   varyLoad,
   Scenario,
-  intermittentAvailability,
-  increaseLatency,
+  varyAvailability,
+  varyLatency,
   decreasingAvailability,
   varyCapacity
 } from "./scenarios";
@@ -36,15 +36,15 @@ async function run(): Promise<void> {
   //await runExperiment("D", varyLoad, createSmartLoadSheddingModel);
 
 
-  //await runExperiment("A", intermittentAvailability, createNaiveModel);
-  //await runExperiment("E", intermittentAvailability, createRequestCachingModel);
-  //await runExperiment("F", intermittentAvailability, createAsyncCacheLoadingModel); // not in original
-  //await runExperiment("H", intermittentAvailability, createRetriesModel);
-  //await runExperiment("I", intermittentAvailability, createInfiniteRetriesModel);
+  //await runExperiment("A", varyAvailability, createNaiveModel);
+  //await runExperiment("E", varyAvailability, createRequestCachingModel);
+  //await runExperiment("F", varyAvailability, createAsyncCacheLoadingModel); // not in original
+  //await runExperiment("H", varyAvailability, createRetriesModel);
+  //await runExperiment("I", varyAvailability, createInfiniteRetriesModel);
 
-  //await runExperiment("A", increaseLatency, createNaiveModel);
-  //await runExperiment("F", increaseLatency, createAsyncCacheLoadingModel);
-  await runExperiment("G", increaseLatency, createPerRequestTimeoutModel);
+  await runExperiment("A", varyLatency, createNaiveModel);
+  await runExperiment("F", varyLatency, createAsyncCacheLoadingModel);
+  await runExperiment("G", varyLatency, createPerRequestTimeoutModel);
 
   ////await runExperiment("A", decreasingAvailability, createNaiveModel);
   ////await runExperiment("H", decreasingAvailability, createRetriesModel);

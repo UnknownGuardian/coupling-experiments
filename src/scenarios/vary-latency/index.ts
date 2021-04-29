@@ -10,18 +10,24 @@ import { Scenario } from "../scenario";
  * @param model 
  * @returns 
  */
-export function increaseLatency(model: Model<{ z: Z }>): Scenario {
+export function varyLatency(model: Model<{ z: Z }>): Scenario {
   simulation.eventsPer1000Ticks = 400 / TICK_DILATION
   simulation.keyspaceMean = 10000;
   simulation.keyspaceStd = 500;
 
-  throw "sine wave"
 
+  // sine wave
+  metronome.setInterval(() => {
+    const mean = 50 + 25 * Math.sin(0.0005 * metronome.now() / TICK_DILATION);
+    model.stages.z.mean = mean;
+  }, 10)
 
   // linear function
+  /*
   metronome.setInterval(() => {
     model.stages.z.mean = 15 + (metronome.now() * 0.0005 / TICK_DILATION);
   }, 10)
+  */
 
   // step function
   /*
@@ -33,6 +39,6 @@ export function increaseLatency(model: Model<{ z: Z }>): Scenario {
   */
 
   return {
-    name: "IncreaseLatency"
+    name: "VaryLatency"
   }
 }

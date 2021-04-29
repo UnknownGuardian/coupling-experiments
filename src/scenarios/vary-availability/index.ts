@@ -12,7 +12,7 @@ import { Scenario } from "../scenario";
  * @param model 
  * @returns 
  */
-export function intermittentAvailability(model: Model<{ z: Z }>): Scenario {
+export function varyAvailability(model: Model<{ z: Z }>): Scenario {
   simulation.eventsPer1000Ticks = 400 / TICK_DILATION
   simulation.keyspaceMean = 10000;
   simulation.keyspaceStd = 500;
