@@ -1,5 +1,5 @@
 import { Event, metronome, simulation, stats } from "@byu-se/quartermaster";
-import { Row, write } from "./csv";
+import { extractPropertiesForScenario, Row, write } from "./csv";
 import {
   Model,
   StageCollection,
@@ -34,6 +34,24 @@ async function run(): Promise<void> {
   //await runExperiment("B", varyLoad, createLoadLevelingModel);
   //await runExperiment("C", varyLoad, createLoadSheddingModel);
   //await runExperiment("D", varyLoad, createSmartLoadSheddingModel);
+  extractPropertiesForScenario("VaryLoad", ["loadFromY", "meanLatencyFromY"])
+
+  //await runExperiment("A", varyLatency, createNaiveModel);
+  //await runExperiment("E", varyLatency, createRequestCachingModel);
+  //await runExperiment("F", varyLatency, createAsyncCacheLoadingModel);
+  //await runExperiment("G", varyLatency, createPerRequestTimeoutModel);
+  extractPropertiesForScenario("VaryLatency",
+    [
+      "meanLatencyFromY",
+      "meanAvailabilityFromY",
+      "meanResponseGFastAvailability",
+      "meanResponseGMediumAvailability",
+      "meanResponseGSlowAvailability",
+      "meanResponseGFastLatency",
+      "meanResponseGMediumLatency",
+      "meanResponseGSlowLatency"
+    ]
+  )
 
 
   //await runExperiment("A", varyAvailability, createNaiveModel);
@@ -41,20 +59,15 @@ async function run(): Promise<void> {
   //await runExperiment("F", varyAvailability, createAsyncCacheLoadingModel); // not in original
   //await runExperiment("H", varyAvailability, createRetriesModel);
   //await runExperiment("I", varyAvailability, createInfiniteRetriesModel);
+  extractPropertiesForScenario("IntermittentAvailability", ["meanAvailabilityFromY", "meanResponseAge"])
 
-  //await runExperiment("A", varyLatency, createNaiveModel);
-  //await runExperiment("F", varyLatency, createAsyncCacheLoadingModel);
-  await runExperiment("G", varyLatency, createPerRequestTimeoutModel);
 
-  ////await runExperiment("A", decreasingAvailability, createNaiveModel);
-  ////await runExperiment("H", decreasingAvailability, createRetriesModel);
-  ////await runExperiment("I", decreasingAvailability, createInfiniteRetriesModel);
-  ////await runExperiment("E", decreasingAvailability, createRequestCachingModel);
-  ////await runExperiment("F", decreasingAvailability, createAsyncCacheLoadingModel); // not in original
 
   //await runExperiment("A", varyCapacity, createNaiveModel);
   //await runExperiment("J", varyCapacity, createInferredPoolSizingModel);
   //await runExperiment("K", varyCapacity, createCooperativePoolSizingModel);
+  extractPropertiesForScenario("VaryCapacity", ["loadFromY", "poolSize", "zCapacity"])
+
 
 }
 

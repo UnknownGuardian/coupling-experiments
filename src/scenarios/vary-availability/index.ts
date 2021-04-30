@@ -35,6 +35,6 @@ export function varyAvailability(model: Model<{ z: Z }>): Scenario {
   */
 
   return {
-    name: "IntermittentAvailability"
+    name: "VaryAvailability"
   }
 }

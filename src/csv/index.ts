@@ -1,5 +1,5 @@
-import { unparse } from "papaparse"
-import { writeFileSync } from "fs";
+import { unparse, parse } from "papaparse"
+import { readdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 
 /**
@@ -45,8 +45,59 @@ export type Row = {
   meanResponseGMediumAvailability: number, // R
   meanResponseGSlowAvailability: number, // R
 }
+
+const dir = join(__dirname, "..", "..", "out", "models");
 export function write(filename: String, rows: Row[]): void {
   //console.log(rows);
   const csv = unparse(rows);
-  writeFileSync(join(__dirname, "..", "..", "out", "models", `${filename}.csv`), csv)
+  writeFileSync(join(dir, `${filename}.csv`), csv)
+}
+
+
+export function extractPropertiesForScenario(scenarioName: string, properties: (keyof Row)[]) {
+  const fileList = readdirSync(dir).filter(file => file.includes(`-${scenarioName}.csv`));
+  console.log(fileList);
+
+  if (fileList.length === 0)
+    throw 'No files fit this scenario name: ' + scenarioName
+
+  const files = fileList.map(name => parse(readFileSync(join(dir, name), 'utf-8'), { dynamicTyping: true, header: true }).data as Row[])
+  const numRows = Math.max(...files.map(rows => rows.length));
+
+  const tickArr = files[0].map(row => row.tick)
+
+  const rows = [];
+  // header by property
+  // columns are [TICK, COLUMN_A, COLUMN_A, EMPTY, COLUMN_B, COLUMN_B]
+  const header = [""].concat(properties.flatMap(p => fileList.map<string>(_ => p).concat([""])))
+  rows.push(header);
+
+  // header by scenario name
+  // columns are [NONE, MODEL_A, MODEL_B, EMPTY, MODEL_A, MODEL_B]
+  const header2 = [""].concat(properties.flatMap(p => fileList.map<string>(fileName => {
+    const parts = fileName.split("-");
+    return `${parts[0]} - ${parts[2]}`
+  }).concat([""])))
+  rows.push(header2);
+
+  // columns are [TICK, COLUMN_A, COLUMN_A, EMPTY, COLUMN_B, COLUMN_B]
+  for (let i = 0; i < numRows; i++) {
+    const row: any[] = [tickArr[i] || -1];
+    for (const p of properties) {
+      for (const f of files) {
+        const fileRow = f[i];
+        if (fileRow)
+          row.push(fileRow[p])
+        else
+          row.push("")
+      }
+      row.push("");
+    }
+    rows.push(row);
+  }
+
+
+  const csv = unparse(rows);
+  writeFileSync(join(dir, "scenario", `${scenarioName}.csv`), csv)
+
 }
