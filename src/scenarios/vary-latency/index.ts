@@ -1,7 +1,7 @@
-import { metronome, simulation } from "@byu-se/quartermaster";
+import { metronome, simulation, Timeout } from "@byu-se/quartermaster";
 import { TICK_DILATION } from "../..";
 import { Model } from "../../models";
-import { Z } from "../../stages";
+import { PerRequestTimeout, X, Y, Z } from "../../stages";
 import { Scenario } from "../scenario";
 
 /**
@@ -10,15 +10,23 @@ import { Scenario } from "../scenario";
  * @param model 
  * @returns 
  */
-export function varyLatency(model: Model<{ z: Z }>): Scenario {
+export function varyLatency(model: Model<{ x: X, y: Y, z: Z }>): Scenario {
   simulation.eventsPer1000Ticks = 400 / TICK_DILATION
   simulation.keyspaceMean = 10000;
   simulation.keyspaceStd = 500;
 
+  // enforces timeout between X and Y
+  const timeout = new PerRequestTimeout(model.stages.y);
+  timeout.timeout = 60 * TICK_DILATION + 10
+  model.stages.x.wrapped = timeout
 
+
+  const period = 2 * Math.PI / 40_000; // 40 seconds
+  const amplitude = 30;
+  const average = 60;
   // sine wave
   metronome.setInterval(() => {
-    const mean = 50 + 25 * Math.sin(0.0005 * metronome.now() / TICK_DILATION);
+    const mean = average + amplitude * Math.sin(metronome.now() * period / TICK_DILATION);
     model.stages.z.mean = mean;
   }, 10)
 

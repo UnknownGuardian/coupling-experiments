@@ -25,7 +25,7 @@ export function createSmartLoadSheddingModel(): SmartLoadSheddingModel {
   const queue = new PriorityQueue(200, 28);
   queue.priority = (event: Event) => (<Event & { priority: number }>event).priority
   dependencyQueue.inQueue = queue;
-  z.inQueue = new FIFOQueue(Infinity, 28);  // the load Z is provisioned to handle
+  //z.inQueue = new FIFOQueue(Infinity, 28);  // the load Z is provisioned to handle
 
 
 

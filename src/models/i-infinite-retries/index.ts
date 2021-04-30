@@ -5,7 +5,6 @@ import { Model } from "../model";
 
 export type InfiniteRetriesModel = Model<{
   x: X;
-  xyTimeout: Timeout;
   y: Y;
   cache: AgeLRUCache;
   yzTimeout: Timeout;
@@ -21,8 +20,7 @@ export function createInfiniteRetriesModel(): InfiniteRetriesModel {
   const yzTimeout = new Timeout(retry);
   const cache = new AgeLRUCache(yzTimeout);
   const y = new Y(cache);
-  const xyTimeout = new Timeout(y);
-  const x = new X(xyTimeout);
+  const x = new X(y);
 
   // configurations below are specific to this model and not the scenario
 
@@ -38,12 +36,11 @@ export function createInfiniteRetriesModel(): InfiniteRetriesModel {
   cache.ttl = 10000 * TICK_DILATION;
   cache.capacity = 1000; // 68% of the keyspace
 
-  xyTimeout.timeout = 100 * TICK_DILATION
-  yzTimeout.timeout = 97 * TICK_DILATION
+  yzTimeout.timeout = 60 * TICK_DILATION;
 
   return {
     name: "InfiniteRetries",
     entry: x,
-    stages: { x, xyTimeout, y, cache, yzTimeout, retry, dependencyQueue, z }
+    stages: { x, y, cache, yzTimeout, retry, dependencyQueue, z }
   }
 }

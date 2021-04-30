@@ -1,26 +1,32 @@
-import { metronome, simulation } from "@byu-se/quartermaster";
+import { metronome, simulation, Timeout } from "@byu-se/quartermaster";
 import { TICK_DILATION } from "../..";
 import { Model } from "../../models";
-import { Z } from "../../stages";
+import { X, Y, Z } from "../../stages";
 import { Scenario } from "../scenario";
 
 /**
  * Z's availability is intermittent
  * 
- * TODO: Consider 0 availability.
- * 
  * @param model 
  * @returns 
  */
-export function varyAvailability(model: Model<{ z: Z }>): Scenario {
+export function varyAvailability(model: Model<{ x: X, y: Y, z: Z }>): Scenario {
   simulation.eventsPer1000Ticks = 400 / TICK_DILATION
   simulation.keyspaceMean = 10000;
   simulation.keyspaceStd = 500;
 
+  // enforces timeout between X and Y
+  const timeout = new Timeout(model.stages.y);
+  timeout.timeout = 60 * TICK_DILATION + 10
+  model.stages.x.wrapped = timeout
 
+
+  const period = 2 * Math.PI / 40_000; // 40 seconds
+  const amplitude = 0.5;
+  const average = 0.5;
   // sine wave between 0 and 1
   metronome.setInterval(() => {
-    const availability = 0.5 + 0.5 * Math.sin(0.0005 * metronome.now() / TICK_DILATION);
+    const availability = average + amplitude * Math.sin(metronome.now() * period / TICK_DILATION);
     model.stages.z.availability = availability;
   }, 10)
 

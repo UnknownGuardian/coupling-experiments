@@ -55,7 +55,7 @@ export class PriorityQueue implements Queue {
     this.items.sort((a, b) => this.priority(b.event) - this.priority(a.event));
 
 
-    this.items.length > 190 && console.log(this.items.length, this.capacity)
+    //this.items.length > 190 && console.log(this.items.length, this.capacity)
 
     // if more than full (full means 10 items in a 10 capacity, we only want to trigger if 11)
     if (this.items.length > this.capacity) {

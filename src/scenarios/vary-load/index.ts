@@ -1,6 +1,7 @@
-import { metronome, simulation } from "@byu-se/quartermaster";
+import { FIFOQueue, metronome, simulation } from "@byu-se/quartermaster";
 import { TICK_DILATION } from "../..";
 import { Model } from "../../models";
+import { Z } from "../../stages";
 import { Scenario } from "../scenario";
 
 /**
@@ -9,9 +10,11 @@ import { Scenario } from "../scenario";
  * @param model 
  * @returns 
  */
-export function varyLoad(model: Model<{}>): Scenario {
+export function varyLoad(model: Model<{ z: Z }>): Scenario {
   simulation.keyspaceMean = 10000;
   simulation.keyspaceStd = 500;
+
+  model.stages.z.inQueue = new FIFOQueue(1, 28);  // the load Z is provisioned to handle
 
   // sine wave
   metronome.setInterval(() => {

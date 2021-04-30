@@ -30,42 +30,59 @@ export const SAMPLE_DURATION = 500 * TICK_DILATION;
 
 run();
 async function run(): Promise<void> {
-  //await runExperiment("A", varyLoad, createNaiveModel);
-  //await runExperiment("B", varyLoad, createLoadLevelingModel);
-  //await runExperiment("C", varyLoad, createLoadSheddingModel);
-  //await runExperiment("D", varyLoad, createSmartLoadSheddingModel);
-  extractPropertiesForScenario("VaryLoad", ["loadFromY", "meanLatencyFromY"])
+  /*
+await runExperiment("A", varyLoad, createNaiveModel);
+await runExperiment("B", varyLoad, createLoadLevelingModel);
+await runExperiment("C", varyLoad, createLoadSheddingModel);
+await runExperiment("D", varyLoad, createSmartLoadSheddingModel);
+extractPropertiesForScenario("VaryLoad",
+[
+  "loadFromY",
+  "meanLatencyFromY",
+  "meanAvailabilityFromY",
+  "meanResponseP1Availability",
+  "meanResponseP2Availability",
+  "meanResponseP3Availability"
+])
+*/
 
-  //await runExperiment("A", varyLatency, createNaiveModel);
-  //await runExperiment("E", varyLatency, createRequestCachingModel);
-  //await runExperiment("F", varyLatency, createAsyncCacheLoadingModel);
-  //await runExperiment("G", varyLatency, createPerRequestTimeoutModel);
+  /*
+  await runExperiment("A", varyLatency, createNaiveModel);
+  await runExperiment("E", varyLatency, createRequestCachingModel);
+  await runExperiment("F", varyLatency, createAsyncCacheLoadingModel);
+  await runExperiment("G", varyLatency, createPerRequestTimeoutModel);
   extractPropertiesForScenario("VaryLatency",
-    [
-      "meanLatencyFromY",
-      "meanAvailabilityFromY",
-      "meanResponseGFastAvailability",
-      "meanResponseGMediumAvailability",
-      "meanResponseGSlowAvailability",
-      "meanResponseGFastLatency",
-      "meanResponseGMediumLatency",
-      "meanResponseGSlowLatency"
-    ]
+  [
+    "meanLatencyFromY",
+    "meanAvailabilityFromY",
+    "meanResponseGFastAvailability",
+    "meanResponseGMediumAvailability",
+    "meanResponseGSlowAvailability",
+    "meanResponseGFastLatency",
+    "meanResponseGMediumLatency",
+    "meanResponseGSlowLatency"
+  ]
   )
-
-
-  //await runExperiment("A", varyAvailability, createNaiveModel);
-  //await runExperiment("E", varyAvailability, createRequestCachingModel);
-  //await runExperiment("F", varyAvailability, createAsyncCacheLoadingModel); // not in original
-  //await runExperiment("H", varyAvailability, createRetriesModel);
-  //await runExperiment("I", varyAvailability, createInfiniteRetriesModel);
-  extractPropertiesForScenario("IntermittentAvailability", ["meanAvailabilityFromY", "meanResponseAge"])
+  */
 
 
 
-  //await runExperiment("A", varyCapacity, createNaiveModel);
-  //await runExperiment("J", varyCapacity, createInferredPoolSizingModel);
-  //await runExperiment("K", varyCapacity, createCooperativePoolSizingModel);
+  await runExperiment("A", varyAvailability, createNaiveModel);
+  await runExperiment("E", varyAvailability, createRequestCachingModel);
+  await runExperiment("F", varyAvailability, createAsyncCacheLoadingModel); // not in original
+  await runExperiment("H", varyAvailability, createRetriesModel);
+  await runExperiment("I", varyAvailability, createInfiniteRetriesModel);
+  extractPropertiesForScenario("VaryAvailability",
+    ["meanAvailabilityFromY",
+      "meanResponseAge",
+      "meanResponseCacheAge"
+    ])
+
+
+
+  await runExperiment("A", varyCapacity, createNaiveModel);
+  await runExperiment("J", varyCapacity, createInferredPoolSizingModel);
+  await runExperiment("K", varyCapacity, createCooperativePoolSizingModel);
   extractPropertiesForScenario("VaryCapacity", ["loadFromY", "poolSize", "zCapacity"])
 
 

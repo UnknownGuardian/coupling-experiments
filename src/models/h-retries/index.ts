@@ -5,7 +5,6 @@ import { Model } from "../model";
 
 export type RetriesModel = Model<{
   x: X;
-  xyTimeout: Timeout;
   y: Y;
   cache: AgeLRUCache;
   dependencyQueue: TimedRetryDependencyQueue;
@@ -24,19 +23,16 @@ export function createRetriesModel(): RetriesModel {
   const dependencyQueue = new TimedRetryDependencyQueue(z);
   const cache = new AgeLRUCache(dependencyQueue);
   const y = new Y(cache);
-  const xyTimeout = new Timeout(y);
-  const x = new X(xyTimeout);
+  const x = new X(y);
 
   cache.ttl = 10000 * TICK_DILATION;
   cache.capacity = 1000; // 68% of the keyspace
 
-  xyTimeout.timeout = 100 * TICK_DILATION
-  dependencyQueue.timeout = 97 * TICK_DILATION
-  dependencyQueue.maxRetryTime = 96 * TICK_DILATION
+  dependencyQueue.maxRetryTime = 60 * TICK_DILATION
 
   return {
     name: "Retries",
     entry: x,
-    stages: { x, xyTimeout, y, cache, dependencyQueue, /*yzTimeout, retry,*/ z }
+    stages: { x, y, cache, dependencyQueue, /*yzTimeout, retry,*/ z }
   }
 }

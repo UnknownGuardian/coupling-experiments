@@ -20,7 +20,7 @@ export class X extends Stage {
   // internal behavior
   public beforeHook: Hook | null = null;
 
-  constructor(protected wrapped: Stage) {
+  constructor(public wrapped: Stage) {
     super();
     metronome.setInterval(() => {
       stats.record("tick", metronome.now());

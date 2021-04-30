@@ -55,7 +55,7 @@ export function write(filename: String, rows: Row[]): void {
 
 
 export function extractPropertiesForScenario(scenarioName: string, properties: (keyof Row)[]) {
-  const fileList = readdirSync(dir).filter(file => file.includes(`-${scenarioName}.csv`));
+  const fileList = readdirSync(dir).filter(file => file.includes(`-${scenarioName}.csv`) && !file.includes("~"));
   console.log(fileList);
 
   if (fileList.length === 0)
