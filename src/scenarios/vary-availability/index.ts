@@ -15,10 +15,10 @@ export function varyAvailability(model: Model<{ x: X, y: Y, z: Z }>): Scenario {
   simulation.keyspaceMean = 10000;
   simulation.keyspaceStd = 500;
 
-  // enforces timeout between X and Y
+  /*// enforces timeout between X and Y
   const timeout = new Timeout(model.stages.y);
   timeout.timeout = 60 * TICK_DILATION + 10
-  model.stages.x.wrapped = timeout
+  model.stages.x.wrapped = timeout*/
 
 
   const period = 2 * Math.PI / 40_000; // 40 seconds

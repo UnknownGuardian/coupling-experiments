@@ -62,6 +62,10 @@ export class PriorityQueue implements Queue {
       // evict something by evicting the last thing in the queue
       const lastItem = this.items.pop() as Item;
 
+      // TODO: Fix this
+      // HACK TO LET EVICTIONS KNOW QUEUE IS FULL
+      (lastItem.event as any).dependencyQueueFull = true;
+
       // let it know its been failed
       lastItem.callback('fail', null);
       //stats.add(`eviction-priority-${(<any>lastItem.event)["priority"]}`, 1)

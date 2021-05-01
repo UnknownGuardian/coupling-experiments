@@ -1,6 +1,5 @@
 import { Event, FIFOQueue } from "@byu-se/quartermaster";
-import { X, Y, DependencyQueue, Z } from "../../stages"
-import { PriorityQueue } from "../../stages/priority-queue";
+import { X, Y, DependencyQueue, Z, PriorityQueue } from "../../stages"
 import { Model } from "../model";
 
 export type SmartLoadSheddingModel = Model<{

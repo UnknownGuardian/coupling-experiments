@@ -13,6 +13,7 @@ export class AgeLRUCache extends LRUCache {
       const ages = Object.values(store).map(x => metronome.now() - x.time)
       const m = mean(ages);
       stats.record("avgCacheAge", m);
+      stats.record("cacheSize ", Object.values(store).values);
 
       /*if (m >= 10_000 * TICK_DILATION) {
         console.log(store);

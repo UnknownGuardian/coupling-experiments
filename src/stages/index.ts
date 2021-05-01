@@ -18,3 +18,5 @@ export * from "./conditional-retry";
 export * from "./timed-retry"
 
 export * from "./lru-cache";
+
+export * from "./priority-queue"
