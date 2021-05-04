@@ -23,7 +23,7 @@ export function createAsyncCacheLoadingPrimeModel(): AsyncCacheLoadingPrimeModel
   cache.ttl = 10000 * TICK_DILATION;
   cache.capacity = 1000; // 68% of the keyspace
 
-  retry.attempts = 10;
+  retry.attempts = 6;
 
   return {
     name: "AsyncCacheLoadingPrime",

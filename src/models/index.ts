@@ -1,6 +1,5 @@
 export * from "./model"
 export * from "./a-naive"
-export * from "./aprime-naive"
 export * from "./b-load-leveling"
 export * from "./c-load-shedding"
 export * from "./d-smart-load-shedding"

@@ -14,7 +14,6 @@ import {
   createInfiniteRetriesModel,
   createInferredPoolSizingModel,
   createCooperativePoolSizingModel,
-  createNaivePrimeModel,
   createAsyncCacheLoadingPrimeModel,
   createAsyncCacheLoadingPrimePrimeModel
 } from "./models";
@@ -47,12 +46,12 @@ async function run(): Promise<void> {
       "meanResponseP1Availability",
       "meanResponseP2Availability",
       "meanResponseP3Availability"
-    ])
-  */
+    ])*/
 
 
 
-  /*
+
+
   await runExperiment("A", varyLatency, createNaiveModel);
   await runExperiment("E", varyLatency, createRequestCachingModel);
   await runExperiment("F", varyLatency, createAsyncCacheLoadingModel);
@@ -69,23 +68,29 @@ async function run(): Promise<void> {
       "meanResponseGSlowLatency"
     ]
   )
-  */
 
 
 
 
-  await runExperiment("A", varyAvailability, createNaiveModel);
-  await runExperiment("APrime", varyAvailability, createNaivePrimeModel);
-  await runExperiment("FPrime", varyAvailability, createAsyncCacheLoadingPrimeModel);
-  await runExperiment("FPrimePrime", varyAvailability, createAsyncCacheLoadingPrimePrimeModel);
+
+  //await runExperiment("A", varyAvailability, createNaiveModel);
+  //await runExperiment("H", varyAvailability, createRetriesModel);
+  //await runExperiment("F", varyAvailability, createAsyncCacheLoadingModel);
+  //await runExperiment("FPrime", varyAvailability, createAsyncCacheLoadingPrimeModel);
+  //await runExperiment("FPrimePrime", varyAvailability, createAsyncCacheLoadingPrimePrimeModel);
   extractPropertiesForScenario("VaryAvailability",
     [
       "meanAvailabilityFromY",
-      "meanResponseAge",
-      "meanResponseCacheAge"
+      "loadFromY",
+      "meanTriesPerRequest",
+      "meanResponseP1Availability",
+      "meanResponseP2Availability",
+      "meanResponseP3Availability"
     ]
   )
+
   /*
+  // OLD availability
   await runExperiment("A", varyAvailability, createNaiveModel);
   await runExperiment("E", varyAvailability, createRequestCachingModel);
   await runExperiment("F", varyAvailability, createAsyncCacheLoadingModel);
@@ -96,16 +101,16 @@ async function run(): Promise<void> {
       "meanResponseAge",
       "meanResponseCacheAge"
     ])
-    */
+  */
 
 
 
   /*
-  await runExperiment("A", varyCapacity, createNaiveModel);
-  await runExperiment("J", varyCapacity, createInferredPoolSizingModel);
-  await runExperiment("K", varyCapacity, createCooperativePoolSizingModel);
-  extractPropertiesForScenario("VaryCapacity", ["loadFromY", "poolSize", "zCapacity"])
-  */
+await runExperiment("A", varyCapacity, createNaiveModel);
+await runExperiment("K2", varyCapacity, createCooperativePoolSizingModel);
+await runExperiment("L2", varyCapacity, createInferredPoolSizingModel);
+extractPropertiesForScenario("VaryCapacity", ["loadFromY", "poolSize", "zCapacity", "meanAvailabilityFromY"])*/
+
 
 }
 

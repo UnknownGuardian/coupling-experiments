@@ -16,7 +16,7 @@ export function createCooperativePoolSizingModel(): CooperativePoolSizingModel {
   const x = new X(y);
 
   dependencyQueue.inQueue = new FIFOQueue(Infinity, 28);  // the load to send to Z
-  z.inQueue = new FIFOQueue(200, 28);  // the load Z is provisioned to handle
+  z.inQueue = new FIFOQueue(1, 28);  // the load Z is provisioned to handle
 
   return {
     name: "CooperativePoolSizing",
