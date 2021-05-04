@@ -3,7 +3,7 @@ import { TICK_DILATION } from "../..";
 import { X, Y, DependencyQueue, Z, PassthroughCache } from "../../stages"
 import { Model } from "../model";
 
-export type PerRequestTimeoutModel = Model<{
+type PerRequestTimeoutModel = Model<{
   x: X;
   y: Y;
   cache: PassthroughCache;
@@ -30,6 +30,7 @@ export function createPerRequestTimeoutModel(): PerRequestTimeoutModel {
   cache.capacity = 1000; // 68% of the keyspace
 
   return {
+    id: "G",
     name: "PerRequestTimeout",
     entry: x,
     stages: { x, y, cache, dependencyQueue, z }

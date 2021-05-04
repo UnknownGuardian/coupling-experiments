@@ -3,7 +3,7 @@ import { TICK_DILATION } from "../..";
 import { X, Y, DependencyQueue, Z, BackgroundCache } from "../../stages"
 import { Model } from "../model";
 
-export type AsyncCacheLoadingPrimeModel = Model<{
+type AsyncRetriesModel = Model<{
   x: X;
   y: Y;
   cache: BackgroundCache;
@@ -12,7 +12,7 @@ export type AsyncCacheLoadingPrimeModel = Model<{
   z: Z;
 }>
 
-export function createAsyncCacheLoadingPrimeModel(): AsyncCacheLoadingPrimeModel {
+export function createAsyncRetriesModel(): AsyncRetriesModel {
   const z = new Z();
   const dependencyQueue = new DependencyQueue(z);
   const retry = new Retry(dependencyQueue)
@@ -26,7 +26,8 @@ export function createAsyncCacheLoadingPrimeModel(): AsyncCacheLoadingPrimeModel
   retry.attempts = 6;
 
   return {
-    name: "AsyncCacheLoadingPrime",
+    id: "I",
+    name: "AsyncRetries",
     entry: x,
     stages: { x, y, cache, retry, dependencyQueue, z }
   }

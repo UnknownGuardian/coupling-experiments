@@ -2,7 +2,7 @@ import { TICK_DILATION } from "../..";
 import { X, Y, DependencyQueue, Z, BackgroundCache } from "../../stages"
 import { Model } from "../model";
 
-export type AsyncCacheLoadingModel = Model<{
+type AsyncCacheLoadingModel = Model<{
   x: X;
   y: Y;
   cache: BackgroundCache;
@@ -21,6 +21,7 @@ export function createAsyncCacheLoadingModel(): AsyncCacheLoadingModel {
   cache.capacity = 1000; // 68% of the keyspace
 
   return {
+    id: "F",
     name: "AsyncCacheLoading",
     entry: x,
     stages: { x, y, cache, dependencyQueue, z }

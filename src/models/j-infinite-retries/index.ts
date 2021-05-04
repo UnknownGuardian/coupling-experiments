@@ -1,9 +1,9 @@
-import { Event, metronome, Retry } from "@byu-se/quartermaster";
+import { Event, Retry } from "@byu-se/quartermaster";
 import { TICK_DILATION } from "../..";
 import { X, Y, DependencyQueue, Z, BackgroundCache, PriorityQueue, ConditionalRetry, FullQueueEvent } from "../../stages"
 import { Model } from "../model";
 
-export type AsyncCacheLoadingPrimePrimeModel = Model<{
+export type InfiniteRetriesModel = Model<{
   x: X;
   y: Y;
   cache: BackgroundCache;
@@ -12,7 +12,7 @@ export type AsyncCacheLoadingPrimePrimeModel = Model<{
   z: Z;
 }>
 
-export function createAsyncCacheLoadingPrimePrimeModel(): AsyncCacheLoadingPrimePrimeModel {
+export function createInfiniteRetriesModel(): InfiniteRetriesModel {
   const z = new Z();
   const dependencyQueue = new DependencyQueue(z);
   const retry = new ConditionalRetry(dependencyQueue);
@@ -43,7 +43,8 @@ export function createAsyncCacheLoadingPrimePrimeModel(): AsyncCacheLoadingPrime
   }, 1_000 * TICK_DILATION)*/
 
   return {
-    name: "AsyncCacheLoadingPrimePrime",
+    id: "J",
+    name: "InfiniteRetries",
     entry: x,
     stages: { x, y, cache, retry, dependencyQueue, z }
   }

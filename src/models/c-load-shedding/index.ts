@@ -16,9 +16,9 @@ export function createLoadSheddingModel(): LoadSheddingModel {
   const x = new X(y);
 
   dependencyQueue.inQueue = new FIFOQueue(200, 28);  // the load to send to Z
-  //z.inQueue = new FIFOQueue(Infinity, 28);  // the load Z is provisioned to handle
 
   return {
+    id: "C",
     name: "LoadShedding",
     entry: x,
     stages: { x, y, dependencyQueue, z }

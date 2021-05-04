@@ -19,6 +19,7 @@ export function createInferredPoolSizingModel(): InferredPoolSizingModel {
   z.inQueue = new FIFOQueue(1, 28);  // the load Z is provisioned to handle
 
   return {
+    id: "L",
     name: "InferredPoolSizing",
     entry: x,
     stages: { x, y, dependencyQueue, z }

@@ -2,7 +2,7 @@ import { FIFOQueue } from "@byu-se/quartermaster";
 import { X, Y, CooperativeDependencyQueue, Z } from "../../stages"
 import { Model } from "../model";
 
-export type CooperativePoolSizingModel = Model<{
+type CooperativePoolSizingModel = Model<{
   x: X;
   y: Y;
   dependencyQueue: CooperativeDependencyQueue
@@ -19,6 +19,7 @@ export function createCooperativePoolSizingModel(): CooperativePoolSizingModel {
   z.inQueue = new FIFOQueue(1, 28);  // the load Z is provisioned to handle
 
   return {
+    id: "K",
     name: "CooperativePoolSizing",
     entry: x,
     stages: { x, y, dependencyQueue, z }

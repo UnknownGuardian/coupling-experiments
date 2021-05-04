@@ -2,7 +2,7 @@ import { TICK_DILATION } from "../..";
 import { X, Y, TimedDependencyQueue, AgeLRUCache, Z } from "../../stages"
 import { Model } from "../model";
 
-export type RequestCachingModel = Model<{
+type RequestCachingModel = Model<{
   x: X;
   y: Y;
   cache: AgeLRUCache;
@@ -23,6 +23,7 @@ export function createRequestCachingModel(): RequestCachingModel {
   cache.capacity = 1000; // 68% of the keyspace
 
   return {
+    id: "E",
     name: "RequestCaching",
     entry: x,
     stages: { x, y, cache, dependencyQueue, z }

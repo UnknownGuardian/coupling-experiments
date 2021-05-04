@@ -1,7 +1,7 @@
 import { X, Y, DependencyQueue, Z } from "../../stages"
 import { Model } from "../model";
 
-export type NaiveModel = Model<{
+type NaiveModel = Model<{
   x: X;
   dependencyQueue: DependencyQueue;
   y: Y;
@@ -15,6 +15,7 @@ export function createNaiveModel(): NaiveModel {
   const x = new X(y);
 
   return {
+    id: "A",
     name: "Naive",
     entry: x,
     stages: { x, y, dependencyQueue, z }

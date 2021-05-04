@@ -2,7 +2,7 @@ import { Retry } from "@byu-se/quartermaster";
 import { X, Y, DependencyQueue, Z } from "../../stages"
 import { Model } from "../model";
 
-export type RetriesModel = Model<{
+type RetriesModel = Model<{
   x: X;
   dependencyQueue: DependencyQueue;
   retry: Retry;
@@ -20,6 +20,7 @@ export function createRetriesModel(): RetriesModel {
   retry.attempts = 3;
 
   return {
+    id: "H",
     name: "Retries",
     entry: x,
     stages: { x, y, retry, dependencyQueue, z }

@@ -11,18 +11,16 @@ import {
   createAsyncCacheLoadingModel,
   createPerRequestTimeoutModel,
   createRetriesModel,
-  createInfiniteRetriesModel,
   createInferredPoolSizingModel,
   createCooperativePoolSizingModel,
-  createAsyncCacheLoadingPrimeModel,
-  createAsyncCacheLoadingPrimePrimeModel
+  createAsyncRetriesModel,
+  createInfiniteRetriesModel,
 } from "./models";
 import {
   varyLoad,
   Scenario,
   varyAvailability,
   varyLatency,
-  decreasingAvailability,
   varyCapacity
 } from "./scenarios";
 import { mean } from "./util";
@@ -32,12 +30,10 @@ export const SAMPLE_DURATION = 500 * TICK_DILATION;
 
 run();
 async function run(): Promise<void> {
-
-  /*
-  await runExperiment("A", varyLoad, createNaiveModel);
-  await runExperiment("B", varyLoad, createLoadLevelingModel);
-  await runExperiment("C", varyLoad, createLoadSheddingModel);
-  await runExperiment("D", varyLoad, createSmartLoadSheddingModel);
+  await runExperiment(varyLoad, createNaiveModel);
+  await runExperiment(varyLoad, createLoadLevelingModel);
+  await runExperiment(varyLoad, createLoadSheddingModel);
+  await runExperiment(varyLoad, createSmartLoadSheddingModel);
   extractPropertiesForScenario("VaryLoad",
     [
       "loadFromY",
@@ -46,16 +42,13 @@ async function run(): Promise<void> {
       "meanResponseP1Availability",
       "meanResponseP2Availability",
       "meanResponseP3Availability"
-    ])*/
+    ])
 
 
-
-
-
-  await runExperiment("A", varyLatency, createNaiveModel);
-  await runExperiment("E", varyLatency, createRequestCachingModel);
-  await runExperiment("F", varyLatency, createAsyncCacheLoadingModel);
-  await runExperiment("G", varyLatency, createPerRequestTimeoutModel);
+  await runExperiment(varyLatency, createNaiveModel);
+  await runExperiment(varyLatency, createRequestCachingModel);
+  await runExperiment(varyLatency, createAsyncCacheLoadingModel);
+  await runExperiment(varyLatency, createPerRequestTimeoutModel);
   extractPropertiesForScenario("VaryLatency",
     [
       "meanLatencyFromY",
@@ -70,14 +63,11 @@ async function run(): Promise<void> {
   )
 
 
-
-
-
-  //await runExperiment("A", varyAvailability, createNaiveModel);
-  //await runExperiment("H", varyAvailability, createRetriesModel);
-  //await runExperiment("F", varyAvailability, createAsyncCacheLoadingModel);
-  //await runExperiment("FPrime", varyAvailability, createAsyncCacheLoadingPrimeModel);
-  //await runExperiment("FPrimePrime", varyAvailability, createAsyncCacheLoadingPrimePrimeModel);
+  await runExperiment(varyAvailability, createNaiveModel);
+  await runExperiment(varyAvailability, createRetriesModel);
+  await runExperiment(varyAvailability, createAsyncCacheLoadingModel);
+  await runExperiment(varyAvailability, createAsyncRetriesModel);
+  await runExperiment(varyAvailability, createInfiniteRetriesModel);
   extractPropertiesForScenario("VaryAvailability",
     [
       "meanAvailabilityFromY",
@@ -89,27 +79,18 @@ async function run(): Promise<void> {
     ]
   )
 
-  /*
-  // OLD availability
-  await runExperiment("A", varyAvailability, createNaiveModel);
-  await runExperiment("E", varyAvailability, createRequestCachingModel);
-  await runExperiment("F", varyAvailability, createAsyncCacheLoadingModel);
-  await runExperiment("H", varyAvailability, createRetriesModel);
-  await runExperiment("I", varyAvailability, createInfiniteRetriesModel);
-  extractPropertiesForScenario("VaryAvailability",
-    ["meanAvailabilityFromY",
-      "meanResponseAge",
-      "meanResponseCacheAge"
-    ])
-  */
 
-
-
-  /*
-await runExperiment("A", varyCapacity, createNaiveModel);
-await runExperiment("K2", varyCapacity, createCooperativePoolSizingModel);
-await runExperiment("L2", varyCapacity, createInferredPoolSizingModel);
-extractPropertiesForScenario("VaryCapacity", ["loadFromY", "poolSize", "zCapacity", "meanAvailabilityFromY"])*/
+  await runExperiment(varyCapacity, createNaiveModel);
+  await runExperiment(varyCapacity, createCooperativePoolSizingModel);
+  await runExperiment(varyCapacity, createInferredPoolSizingModel);
+  extractPropertiesForScenario("VaryCapacity",
+    [
+      "loadFromY",
+      "poolSize",
+      "zCapacity",
+      "meanAvailabilityFromY"
+    ]
+  )
 
 
 }
@@ -119,7 +100,7 @@ extractPropertiesForScenario("VaryCapacity", ["loadFromY", "poolSize", "zCapacit
 export type ModelFunction<T extends StageCollection> = () => Model<T>;
 export type ScenarioFunction<T extends StageCollection> = (model: Model<T>) => Scenario;
 async function runExperiment<T extends StageCollection, K extends T>
-  (filePrefix: string, createScenario: ScenarioFunction<T>, createModel: ModelFunction<K>): Promise<void> {
+  (createScenario: ScenarioFunction<T>, createModel: ModelFunction<K>): Promise<void> {
   simulation.reset();
   metronome.resetCurrentTime();
   stats.reset();
@@ -127,6 +108,7 @@ async function runExperiment<T extends StageCollection, K extends T>
   const model = createModel();
   const scenario = createScenario(model);
 
+  const filePrefix = model.id;
   const name = `${filePrefix}-${TICK_DILATION}-${model.name}-${scenario.name}`
   console.log("Beginning Experiment", name)
 
