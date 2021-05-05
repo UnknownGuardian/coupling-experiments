@@ -1,12 +1,10 @@
 import { Event, metronome, simulation, stats } from "@byu-se/quartermaster";
 import { extractPropertiesForScenario, Row, write } from "./csv";
 import {
-  Model,
-  StageCollection,
   createNaiveModel,
   createLoadLevelingModel,
   createLoadSheddingModel,
-  createSmartLoadSheddingModel,
+  createMultilevelLoadSheddingModel,
   createRequestCachingModel,
   createAsyncCacheLoadingModel,
   createPerRequestTimeoutModel,
@@ -15,25 +13,44 @@ import {
   createCooperativePoolSizingModel,
   createAsyncRetriesModel,
   createInfiniteRetriesModel,
+  ModelCreationFunction,
 } from "./models";
 import {
   varyLoad,
-  Scenario,
   varyAvailability,
   varyLatency,
-  varyCapacity
+  varyCapacity,
+  ScenarioFunction
 } from "./scenarios";
 import { mean } from "./util";
 
+/**
+ * In traditional Quartermaster simulations, 1 tick can be considered 1ms. 
+ * In this case, our services respond in low double digit ticks. Quartermaster
+ * occasionally adds some tick delay as events move between stages, and this
+ * behavior can contribute to a significant amount of error with our low tick
+ * response times. To combat this, we use TICK_DILATION to let 100 ticks be 
+ * considered 1 ms. Any error induced by Quartermaster will be negligible now
+ * since stage response time has moved from ~10-40 ticks to 1000 to 4000 ticks.
+ * 
+ * TICK_DILATION is not used internally by Quartermaster. Our custom stages 
+ * and scenarios use this.
+ */
 export const TICK_DILATION = 100;
+
+/**
+ * The frequency of statistic sampling from the simulation. 500 ticks can be
+ * considered to be 0.5 seconds. We include TICK_DILATION to be agnostic of
+ * the actual resolution (how much time a tick represents).
+ */
 export const SAMPLE_DURATION = 500 * TICK_DILATION;
 
 run();
 async function run(): Promise<void> {
-  await runExperiment(varyLoad, createNaiveModel);
-  await runExperiment(varyLoad, createLoadLevelingModel);
-  await runExperiment(varyLoad, createLoadSheddingModel);
-  await runExperiment(varyLoad, createSmartLoadSheddingModel);
+  await runExperiment(createNaiveModel, varyLoad);
+  await runExperiment(createLoadLevelingModel, varyLoad);
+  await runExperiment(createLoadSheddingModel, varyLoad);
+  await runExperiment(createMultilevelLoadSheddingModel, varyLoad);
   extractPropertiesForScenario("VaryLoad",
     [
       "loadFromY",
@@ -45,10 +62,10 @@ async function run(): Promise<void> {
     ])
 
 
-  await runExperiment(varyLatency, createNaiveModel);
-  await runExperiment(varyLatency, createRequestCachingModel);
-  await runExperiment(varyLatency, createAsyncCacheLoadingModel);
-  await runExperiment(varyLatency, createPerRequestTimeoutModel);
+  await runExperiment(createNaiveModel, varyLatency);
+  await runExperiment(createRequestCachingModel, varyLatency);
+  await runExperiment(createAsyncCacheLoadingModel, varyLatency);
+  await runExperiment(createPerRequestTimeoutModel, varyLatency);
   extractPropertiesForScenario("VaryLatency",
     [
       "meanLatencyFromY",
@@ -63,11 +80,11 @@ async function run(): Promise<void> {
   )
 
 
-  await runExperiment(varyAvailability, createNaiveModel);
-  await runExperiment(varyAvailability, createRetriesModel);
-  await runExperiment(varyAvailability, createAsyncCacheLoadingModel);
-  await runExperiment(varyAvailability, createAsyncRetriesModel);
-  await runExperiment(varyAvailability, createInfiniteRetriesModel);
+  await runExperiment(createNaiveModel, varyAvailability);
+  await runExperiment(createAsyncCacheLoadingModel, varyAvailability);
+  await runExperiment(createRetriesModel, varyAvailability);
+  await runExperiment(createAsyncRetriesModel, varyAvailability);
+  await runExperiment(createInfiniteRetriesModel, varyAvailability);
   extractPropertiesForScenario("VaryAvailability",
     [
       "meanAvailabilityFromY",
@@ -80,9 +97,9 @@ async function run(): Promise<void> {
   )
 
 
-  await runExperiment(varyCapacity, createNaiveModel);
-  await runExperiment(varyCapacity, createCooperativePoolSizingModel);
-  await runExperiment(varyCapacity, createInferredPoolSizingModel);
+  await runExperiment(createNaiveModel, varyCapacity);
+  await runExperiment(createCooperativePoolSizingModel, varyCapacity);
+  await runExperiment(createInferredPoolSizingModel, varyCapacity);
   extractPropertiesForScenario("VaryCapacity",
     [
       "loadFromY",
@@ -91,35 +108,37 @@ async function run(): Promise<void> {
       "meanAvailabilityFromY"
     ]
   )
-
-
 }
 
 
 
-export type ModelFunction<T extends StageCollection> = () => Model<T>;
-export type ScenarioFunction<T extends StageCollection> = (model: Model<T>) => Scenario;
-async function runExperiment<T extends StageCollection, K extends T>
-  (createScenario: ScenarioFunction<T>, createModel: ModelFunction<K>): Promise<void> {
+async function runExperiment(createModel: ModelCreationFunction<any>, createScenario: ScenarioFunction): Promise<void> {
+  // reset the environment
   simulation.reset();
   metronome.resetCurrentTime();
   stats.reset();
 
-  const model = createModel();
-  const scenario = createScenario(model);
+  // create the model of the system and the scenario
+  const scenario = createScenario(createModel);
 
-  const filePrefix = model.id;
-  const name = `${filePrefix}-${TICK_DILATION}-${model.name}-${scenario.name}`
+  const modelId = scenario.model.id;
+  const modelName = scenario.model.name;
+  const name = `${modelId}-${TICK_DILATION}-${modelName}-${scenario.name}`
   console.log("Beginning Experiment", name)
 
-
-  await simulation.run(model.entry, 40000);
+  // run the simulation
+  await simulation.run(scenario.entry, 40000);
   console.log("Experiment finished. Metronome stopped at", metronome.now());
 
+  // record the results
   const rows = getRows();
   write(name, rows);
 }
 
+/**
+ * Read the metrics we are interested in from the simulation
+ * @returns Rows, corresponding to time slices, of metrics
+ */
 function getRows(): Row[] {
   const tick: number[] = stats.getRecorded("tick");
   const loadFromSimulation: number[] = stats.getRecorded("loadFromSimulation");
