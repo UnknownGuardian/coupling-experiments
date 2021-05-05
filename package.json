@@ -4,22 +4,21 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node --max-old-space-size=4096 -- node_modules/.bin/ts-node -P tsconfig.json src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "ts-node src/index.ts",
+    "start:extra-memory": "node --max-old-space-size=4096 -- node_modules/.bin/ts-node -P tsconfig.json src/index.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@byu-se/quartermaster": "^1.0.0",
-    "@types/node": "^14.0.11",
     "colors": "^1.4.0",
     "jstat": "^1.9.4",
-    "nodeplotlib": "^0.6.5",
     "papaparse": "^5.3.0",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.5"
   },
   "devDependencies": {
+    "@types/node": "^14.0.11",
     "@types/papaparse": "^5.2.5"
   }
 }
