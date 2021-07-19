@@ -5,8 +5,12 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "ts-node src/index.ts",
+    "start:extra-memory": "node --max-old-space-size=4096 -- node_modules/.bin/ts-node -P tsconfig.json src/index.ts",
     "fastswf": "ts-node src/fastswf.ts",
-    "start:extra-memory": "node --max-old-space-size=4096 -- node_modules/.bin/ts-node -P tsconfig.json src/index.ts"
+    "circleci": "ts-node incident/model_original.ts",
+    "circleci:a": "ts-node incident/model_a.ts",
+    "circleci:b": "ts-node incident/model_b.ts",
+    "circleci:c": "ts-node incident/model_c.ts"
   },
   "author": "",
   "license": "ISC",
