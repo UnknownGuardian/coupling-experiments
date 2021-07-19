@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "ts-node src/index.ts",
+    "fastswf": "ts-node src/fastswf.ts",
     "start:extra-memory": "node --max-old-space-size=4096 -- node_modules/.bin/ts-node -P tsconfig.json src/index.ts"
   },
   "author": "",
@@ -13,12 +14,14 @@
     "@byu-se/quartermaster": "^1.0.0",
     "colors": "^1.4.0",
     "jstat": "^1.9.4",
+    "node-fetch": "^2.6.1",
     "papaparse": "^5.3.0",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.5"
   },
   "devDependencies": {
     "@types/node": "^14.0.11",
+    "@types/node-fetch": "^2.5.11",
     "@types/papaparse": "^5.2.5"
   }
 }
