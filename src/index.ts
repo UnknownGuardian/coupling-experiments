@@ -22,6 +22,7 @@ import {
   varyCapacity,
   ScenarioFunction
 } from "./scenarios";
+import { steadyLoad } from "./scenarios/steady-load";
 import { mean } from "./util";
 
 /**
@@ -45,8 +46,25 @@ export const TICK_DILATION = 100;
  */
 export const SAMPLE_DURATION = 500 * TICK_DILATION;
 
-run();
-async function run(): Promise<void> {
+runSteady();
+async function runSteady(): Promise<void> {
+  await runExperiment(createNaiveModel, steadyLoad);
+  await runExperiment(createLoadLevelingModel, steadyLoad);
+  await runExperiment(createLoadSheddingModel, steadyLoad);
+  await runExperiment(createMultilevelLoadSheddingModel, steadyLoad);
+  extractPropertiesForScenario("SteadyLoad",
+    [
+      "loadFromX",
+      "loadFromY",
+      "meanLatencyFromY",
+      "meanLatencyFromZ",
+      "meanAvailabilityFromY",
+      "meanAvailabilityFromZ",
+    ])
+}
+
+
+async function runVary(): Promise<void> {
   await runExperiment(createNaiveModel, varyLoad);
   await runExperiment(createLoadLevelingModel, varyLoad);
   await runExperiment(createLoadSheddingModel, varyLoad);
