@@ -28,37 +28,50 @@ import {
 } from "../scenarios";
 import { TICK_DILATION } from "..";
 
-/*
- Read an input param value file, run the simulations and output a time series for each input
-*/
+// Read the inputs needed to run the simulations
+const outputDirectory = join(__dirname, "..", "..", "out", "sensitivity");
+
+// Consisting of 1) The simulation JSON 
+const simulationPath = join(outputDirectory, "simulation.json");
+const simulationData = require(simulationPath);
+
+// and 2) The inputs to each simulation
+const paramPath = join(outputDirectory, "param_values.txt");
+const paramFile = readFileSync(paramPath, 'utf-8')
+const paramCSV: number[][] = parse(paramFile, { delimiter: " ", dynamicTyping: true }).data as number[][];
+
+// Prepare a new directory for a copy of the inputs and all the outputs to be dumped
+const timeseriesDir = join(outputDirectory, `results-${+new Date()}`)
+mkdirSync(timeseriesDir);
+copyFileSync(paramPath, join(timeseriesDir, "param_values.txt"))
+copyFileSync(simulationPath, join(timeseriesDir, "simulation.json"))
 
 
+run();
+async function run(): Promise<void> {
+  const models = simulationData.models;
+  for (let modelIndex = 0; modelIndex < models.length; modelIndex++) {
+    const model = models[modelIndex];
 
-const output = join(__dirname, "..", "..", "out", "sensitivity");
-const paramValues = join(output, "param_values.txt");
-const file = readFileSync(paramValues, 'utf-8')
-const data: number[][] = parse(file, { delimiter: " ", dynamicTyping: true }).data as number[][];
-//console.log(data);
+    const outputDir = join(timeseriesDir, model);
+    mkdirSync(outputDir);
 
-const time = +new Date();
-const timeseriesDir = join(output, `results-${time}`)
+    const scenarioInjector = getInjectorFromScenarioName(simulationData.scenario);
+    const createModel = getModelFromModelName(model);
 
-runSteady();
-async function runSteady(): Promise<void> {
+    // loop to data.length - 1 since last row is empty
+    for (let i = 0; i < paramCSV.length - 1; i++) {
+      const params = paramCSV[i];
+      console.log(`Model ${modelIndex + 1}/${models.length} Simulation: ${i + 1}/${paramCSV.length}`, params)
 
-  mkdirSync(timeseriesDir);
-  copyFileSync(paramValues, join(timeseriesDir, "param_values.txt"))
-
-  // loop to data.length - 1 since last row is empty
-  for (let i = 0; i < data.length - 1; i++) {
-    const params = data[i];
-    console.log(`${i + 1}/${data.length}`, params)
-    const createScenario = latencyScenarioParamInjector(params);
-    await runInstance(createNaiveModel, createScenario, i);
+      const createScenario = scenarioInjector(params);
+      await runInstance(createModel, createScenario, outputDir, i);
+    }
   }
+
 }
 
-async function runInstance(createModel: ModelCreationFunction<any>, createScenario: ScenarioFunction, id: number): Promise<void> {
+async function runInstance(createModel: ModelCreationFunction<any>, createScenario: ScenarioFunction, outputDir: string, id: number): Promise<void> {
   // reset the environment
   simulation.reset();
   metronome.resetCurrentTime();
@@ -76,18 +89,9 @@ async function runInstance(createModel: ModelCreationFunction<any>, createScenar
   console.log(`Experiment ${name} finished. Metronome stopped at`, metronome.now());
 
   // record the time series results
-  const rows = getRows();
-  write(name, rows);
+  const rows = getSlimRows();
+  writeFileSync(join(outputDir, `${name}.csv`), unparse(rows));
 }
-
-
-export function write(filename: String, rows: SlimRow[]): void {
-  //console.log(rows);
-  const csv = unparse(rows);
-  writeFileSync(join(timeseriesDir, `${filename}.csv`), csv)
-}
-
-
 
 // just a subset of the timeseries data we might be interested in
 export type SlimRow = {
@@ -107,21 +111,14 @@ export type SlimRow = {
   enqueueCount: number, // C
   queueRejectCount: number, // C
   meanTriesPerRequest: number,
-  //avgCacheAge: number, // V
-  //hitCount: number, // C
-  //missCount: number, // C
-  //cacheSize: number,
-  //meanResponseAge: number, // R - mean age for all responses
-  //meanResponseCacheAge: number, // R - mean age for cached responses
 }
 
 /**
  * Read the metrics we are interested in from the simulation
  * @returns Rows, corresponding to time slices, of metrics
  */
-function getRows(): SlimRow[] {
+function getSlimRows(): SlimRow[] {
   const tick: number[] = stats.getRecorded("tick");
-  //const loadFromSimulation: number[] = stats.getRecorded("loadFromSimulation");
   const loadFromX: number[] = stats.getRecorded("loadFromX");
   const loadFromY: number[] = stats.getRecorded("loadFromY");
   const meanLatencyFromY: number[] = stats.getRecorded("meanLatencyFromY");
@@ -136,42 +133,9 @@ function getRows(): SlimRow[] {
   const enqueueCount: number[] = stats.getRecorded("enqueueCount");
   const queueRejectCount: number[] = stats.getRecorded("queueRejectCount");
   const meanTriesPerRequest: number[] = stats.getRecorded("meanTriesPerRequest");
-  /*const avgCacheAge: number[] = stats.getRecorded("avgCacheAge");
-  const hitCount: number[] = stats.getRecorded("hitCount");
-  const missCount: number[] = stats.getRecorded("missCount");
-  const cacheSize: number[] = stats.getRecorded("cacheSize");*/
-
-  const events: Event[][] = stats.getRecorded("events");
-
   return tick.map<SlimRow>((_, index) => {
-    /*const subsetEvents = optionalArray<Event>(events, index, []);
-    const successSubset = subsetEvents.filter(e => e.response === "success")
-    const meanResponseAge: number = mean(successSubset.map(e => (e as any).age));
-    const meanResponseCacheAge: number = mean(successSubset.map(e => (e as any).age).filter(age => age > 0));
-
-    const priority1 = subsetEvents.filter(e => (e as any).priority == 0);
-    const priority2 = subsetEvents.filter(e => (e as any).priority == 1);
-    const priority3 = subsetEvents.filter(e => (e as any).priority == 2);
-    const meanResponseP1Availability: number = mean(priority1.map(e => e.response === "success" ? 1 : 0));
-    const meanResponseP2Availability: number = mean(priority2.map(e => e.response === "success" ? 1 : 0));
-    const meanResponseP3Availability: number = mean(priority3.map(e => e.response === "success" ? 1 : 0));
-    const meanResponseP1Latency: number = mean(priority1.map(e => e.responseTime.endTime - e.responseTime.startTime));
-    const meanResponseP2Latency: number = mean(priority2.map(e => e.responseTime.endTime - e.responseTime.startTime));
-    const meanResponseP3Latency: number = mean(priority3.map(e => e.responseTime.endTime - e.responseTime.startTime));
-
-    const gFast = subsetEvents.filter(e => (e as any).readAtTimeName == "fast");
-    const gMedium = subsetEvents.filter(e => (e as any).readAtTimeName == "medium");
-    const gSlow = subsetEvents.filter(e => (e as any).readAtTimeName == "slow");
-    const meanResponseGFastLatency: number = mean(gFast.map(e => e.responseTime.endTime - e.responseTime.startTime));
-    const meanResponseGMediumLatency: number = mean(gMedium.map(e => e.responseTime.endTime - e.responseTime.startTime));
-    const meanResponseGSlowLatency: number = mean(gSlow.map(e => e.responseTime.endTime - e.responseTime.startTime));
-    const meanResponseGFastAvailability: number = mean(gFast.map(e => e.response === "success" ? 1 : 0));
-    const meanResponseGMediumAvailability: number = mean(gMedium.map(e => e.response === "success" ? 1 : 0));
-    const meanResponseGSlowAvailability: number = mean(gSlow.map(e => e.response === "success" ? 1 : 0));*/
-
     return {
       tick: tick[index],
-      //loadFromSimulation: loadFromSimulation[index],
       loadFromX: loadFromX[index],
       loadFromY: loadFromY[index],
       meanLatencyFromY: meanLatencyFromY[index],
@@ -186,26 +150,20 @@ function getRows(): SlimRow[] {
       enqueueCount: enqueueCount[index],
       queueRejectCount: queueRejectCount[index],
       meanTriesPerRequest: meanTriesPerRequest[index],
-      //avgCacheAge: optionalNumber(avgCacheAge, index, -1),
-      //hitCount: optionalNumber(hitCount, index, -1),
-      //missCount: optionalNumber(missCount, index, -1),
-      //cacheSize: optionalNumber(cacheSize, index, -1),
-      /*meanResponseAge,
-      meanResponseCacheAge,
-      meanResponseP1Availability,
-      meanResponseP2Availability,
-      meanResponseP3Availability,
-      meanResponseP1Latency,
-      meanResponseP2Latency,
-      meanResponseP3Latency,
-      meanResponseGFastLatency,
-      meanResponseGMediumLatency,
-      meanResponseGSlowLatency,
-      meanResponseGFastAvailability,
-      meanResponseGMediumAvailability,
-      meanResponseGSlowAvailability*/
     }
   })
+}
+
+
+function getInjectorFromScenarioName(scenarioName: String): (params: number[]) => ScenarioFunction {
+  if (scenarioName == "latency")
+    return latencyScenarioParamInjector;
+  throw `No Injector available for ${scenarioName}`
+}
+function getModelFromModelName(modelName: String): ModelCreationFunction<any> {
+  if (modelName == "A")
+    return createNaiveModel;
+  throw `No Model available for ${modelName}`
 }
 
 
