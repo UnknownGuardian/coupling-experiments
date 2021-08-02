@@ -1,0 +1,14 @@
+{
+    "scenario": "availability",
+    "models": [
+        "A",
+        "H",
+        "F",
+        "I"
+    ],
+    "independent": "meanAvailabilityFromZ",
+    "dependent": [
+        "meanAvailabilityFromY",
+        "loadFromY"
+    ]
+}

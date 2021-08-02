@@ -18,3 +18,5 @@ node_modules/
 
 thesis/
 .vscode/settings.json
+
+out/sensitivity/comparison

@@ -15,7 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@byu-se/quartermaster": "^1.0.0",
+    "@byu-se/quartermaster": "git://github.com/BYU-SE/quartermaster.git#matt/1.0.1",
     "colors": "^1.4.0",
     "jstat": "^1.9.4",
     "node-fetch": "^2.6.1",
