@@ -6,6 +6,12 @@
     "independent": "meanLatencyFromZ",
     "dependent": [
         "meanLatencyFromY",
-        "meanAvailabilityFromY"
+        "meanAvailabilityFromY",
+        "meanResponseGFastLatency",
+        "meanResponseGMediumLatency",
+        "meanResponseGSlowLatency",
+        "meanResponseGFastAvailability",
+        "meanResponseGMediumAvailability",
+        "meanResponseGSlowAvailability"
     ]
 }

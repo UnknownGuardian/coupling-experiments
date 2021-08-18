@@ -6,6 +6,9 @@
     "independent": "meanAvailabilityFromZ",
     "dependent": [
         "meanAvailabilityFromY",
-        "loadFromY"
+        "loadFromY",
+        "meanResponseP1Availability",
+        "meanResponseP2Availability",
+        "meanResponseP3Availability"
     ]
 }

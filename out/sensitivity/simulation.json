@@ -1,6 +1,9 @@
 {
     "scenario": "load",
     "models": [
+        "A",
+        "B",
+        "C",
         "D"
     ],
     "independent": "loadFromX",

@@ -3,8 +3,7 @@
     "models": [
         "A",
         "E",
-        "F",
-        "G"
+        "F"
     ],
     "independent": "meanLatencyFromZ",
     "dependent": [

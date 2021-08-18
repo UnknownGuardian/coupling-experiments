@@ -6,6 +6,9 @@
     "independent": "loadFromX",
     "dependent": [
         "loadFromY",
-        "meanLatencyFromY"
+        "meanLatencyFromY",
+        "meanResponseP1Latency",
+        "meanResponseP2Latency",
+        "meanResponseP3Latency"
     ]
 }
