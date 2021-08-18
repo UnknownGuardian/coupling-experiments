@@ -1,7 +1,7 @@
 import { unparse, parse } from "papaparse"
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from "fs";
 import { join } from "path";
-import { Event, FIFOQueue, metronome, simulation, stats } from "@byu-se/quartermaster";
+import { Event, FIFOQueue, FIFOServiceQueue, metronome, simulation, stats } from "@byu-se/quartermaster";
 import { PerRequestTimeout, X, Y, Z } from "../stages";
 import {
   createNaiveModel,
@@ -21,6 +21,8 @@ import {
 } from "../models";
 import { Scenario, ScenarioFunction } from "../scenarios";
 import { TICK_DILATION } from "..";
+
+const jStat = require("jstat");
 
 // Read the inputs needed to run the simulations
 const outputDirectory = join(__dirname, "..", "..", "out", "sensitivity");
@@ -48,7 +50,9 @@ async function run(): Promise<void> {
   for (let modelIndex = 0; modelIndex < models.length; modelIndex++) {
     const model = models[modelIndex];
 
-    const outputDir = join(timeseriesDir, model);
+    const modelDir = join(timeseriesDir, model)
+    mkdirSync(modelDir);
+    const outputDir = join(timeseriesDir, model, "sim");
     mkdirSync(outputDir);
 
     const scenarioInjector = getInjectorFromScenarioName(simulationData.scenario);
@@ -107,6 +111,19 @@ export type SlimRow = {
   enqueueCount: number, // C
   queueRejectCount: number, // C
   meanTriesPerRequest: number,
+
+  meanResponseP1Availability: number, // R
+  meanResponseP2Availability: number, // R
+  meanResponseP3Availability: number, // R
+  meanResponseP1Latency: number, // R
+  meanResponseP2Latency: number, // R
+  meanResponseP3Latency: number, // R
+  meanResponseGFastLatency: number, // R
+  meanResponseGMediumLatency: number, // R
+  meanResponseGSlowLatency: number, // R
+  meanResponseGFastAvailability: number, // R
+  meanResponseGMediumAvailability: number, // R
+  meanResponseGSlowAvailability: number // R
 }
 
 /**
@@ -129,7 +146,35 @@ function getSlimRows(): SlimRow[] {
   const enqueueCount: number[] = stats.getRecorded("enqueueCount");
   const queueRejectCount: number[] = stats.getRecorded("queueRejectCount");
   const meanTriesPerRequest: number[] = stats.getRecorded("meanTriesPerRequest");
+
+  const events: Event[][] = stats.getRecorded("events");
+
+  const mean = jStat.mean;
+
   return tick.map<SlimRow>((_, index) => {
+    const subsetEvents = optionalArray<Event>(events, index, []);
+
+    const priority1 = subsetEvents.filter(e => (e as any).priority == 0);
+    const priority2 = subsetEvents.filter(e => (e as any).priority == 1);
+    const priority3 = subsetEvents.filter(e => (e as any).priority == 2);
+    const meanResponseP1Availability: number = mean(priority1.map(e => e.response === "success" ? 1 : 0));
+    const meanResponseP2Availability: number = mean(priority2.map(e => e.response === "success" ? 1 : 0));
+    const meanResponseP3Availability: number = mean(priority3.map(e => e.response === "success" ? 1 : 0));
+    const meanResponseP1Latency: number = mean(priority1.map(e => e.responseTime.endTime - e.responseTime.startTime));
+    const meanResponseP2Latency: number = mean(priority2.map(e => e.responseTime.endTime - e.responseTime.startTime));
+    const meanResponseP3Latency: number = mean(priority3.map(e => e.responseTime.endTime - e.responseTime.startTime));
+
+    const gFast = subsetEvents.filter(e => (e as any).readAtTimeName == "fast");
+    const gMedium = subsetEvents.filter(e => (e as any).readAtTimeName == "medium");
+    const gSlow = subsetEvents.filter(e => (e as any).readAtTimeName == "slow");
+
+    const meanResponseGFastLatency: number = mean(gFast.map(e => e.responseTime.endTime - e.responseTime.startTime));
+    const meanResponseGMediumLatency: number = mean(gMedium.map(e => e.responseTime.endTime - e.responseTime.startTime));
+    const meanResponseGSlowLatency: number = mean(gSlow.map(e => e.responseTime.endTime - e.responseTime.startTime));
+    const meanResponseGFastAvailability: number = mean(gFast.map(e => e.response === "success" ? 1 : 0));
+    const meanResponseGMediumAvailability: number = mean(gMedium.map(e => e.response === "success" ? 1 : 0));
+    const meanResponseGSlowAvailability: number = mean(gSlow.map(e => e.response === "success" ? 1 : 0));
+
     return {
       tick: tick[index],
       loadFromX: loadFromX[index],
@@ -146,8 +191,26 @@ function getSlimRows(): SlimRow[] {
       enqueueCount: enqueueCount[index],
       queueRejectCount: queueRejectCount[index],
       meanTriesPerRequest: meanTriesPerRequest[index],
+      meanResponseP1Availability,
+      meanResponseP2Availability,
+      meanResponseP3Availability,
+      meanResponseP1Latency,
+      meanResponseP2Latency,
+      meanResponseP3Latency,
+      meanResponseGFastLatency,
+      meanResponseGMediumLatency,
+      meanResponseGSlowLatency,
+      meanResponseGFastAvailability,
+      meanResponseGMediumAvailability,
+      meanResponseGSlowAvailability
     }
   })
+}
+
+function optionalArray<T>(array: T[][], index: number, defaultValue: T[]): T[] {
+  if (!array || array.length <= index)
+    return defaultValue;
+  return array[index];
 }
 
 
@@ -273,11 +336,16 @@ function loadScenarioParamInjector(params: number[]): ScenarioFunction {
   }
 }
 
+let time = 0;
 
 function availabilityScenarioParamInjector(params: number[]): ScenarioFunction {
   return (modelCreator: ModelCreationFunction<Model<any>>): Scenario => {
     simulation.keyspaceMean = 10000;
     simulation.keyspaceStd = 500;
+
+    metronome.realSleepTime = 3;
+    metronome.realSleepFrequency = 1000;
+
 
     const z = new Z();
     const model = modelCreator(z);
@@ -290,11 +358,27 @@ function availabilityScenarioParamInjector(params: number[]): ScenarioFunction {
       (<Event & { priority: number }>event).priority = key % 3;
     }
 
+    //simulation.debug = true;
+
+    metronome.setInterval(() => {
+      let d = +new Date() - time;
+      time = time + d;
+      console.log("oo", metronome.now(), `+${d}`)
+    }, 1000)
+    /*metronome.setTimeout(() => {
+      console.log("xx", metronome.now())
+      metronome.debug(true)
+    }, 99999)
+    metronome.setTimeout(() => {
+      console.log("yy", metronome.now())
+      metronome.debug(true)
+    }, 100000)*/
+
     /*    PARAM changes   */
     // PARAM load
     simulation.eventsPer1000Ticks = params[0] / TICK_DILATION
     // PARAM z's capacity
-    z.inQueue = new FIFOQueue(1, Math.floor(params[1]));
+    z.inQueue = new FIFOServiceQueue(1, Math.floor(params[1]));
     // PARAM z's latency
     z.mean = Math.floor(params[2])
     // PARAM z's availability

@@ -1,4 +1,4 @@
-import { Event, metronome, Retry } from "@byu-se/quartermaster";
+import { Event, FIFOServiceQueue, metronome, Retry } from "@byu-se/quartermaster";
 import { TICK_DILATION } from "../";
 import { QueuePool, Z, BackgroundCache, PriorityQueue, ConditionalRetry, FullQueueEvent } from "../stages"
 import { Model, ModelCreationFunction } from "./model";
@@ -23,6 +23,7 @@ export const createInfiniteRetriesModel: ModelCreationFunction<InfiniteRetriesMo
   cache.capacity = 1000; // 68% of the keyspace
 
   retry.attempts = Infinity;
+  retry.inQueue = new FIFOServiceQueue(0, 56);
 
   // to ensure we don't retry when the dependency queue rejected because it is full.
   // FIXME: a hack to exit early when simulation has stopped to ensure there isn't eternal loops.
@@ -30,7 +31,7 @@ export const createInfiniteRetriesModel: ModelCreationFunction<InfiniteRetriesMo
 
 
   // inform queue order
-  const queue = new PriorityQueue(30, 28);
+  const queue = new PriorityQueue(28, 28);
   queue.priority = (event: Event) => (<Event & { priority: number }>event).priority
   queuePool.inQueue = queue;
 

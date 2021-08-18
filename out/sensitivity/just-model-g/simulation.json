@@ -1,0 +1,11 @@
+{
+    "scenario": "latency",
+    "models": [
+        "G"
+    ],
+    "independent": "meanLatencyFromZ",
+    "dependent": [
+        "meanLatencyFromY",
+        "meanAvailabilityFromY"
+    ]
+}

@@ -18,6 +18,7 @@
     "@byu-se/quartermaster": "git://github.com/BYU-SE/quartermaster.git#matt/1.0.1",
     "colors": "^1.4.0",
     "jstat": "^1.9.4",
+    "memoizee": "^0.4.15",
     "node-fetch": "^2.6.1",
     "papaparse": "^5.3.0",
     "ts-node": "^8.10.2",
