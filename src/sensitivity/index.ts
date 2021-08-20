@@ -21,6 +21,14 @@ import {
 } from "../models";
 import { Scenario, ScenarioFunction } from "../scenarios";
 import { TICK_DILATION } from "..";
+import { SeededMath } from "../util";
+
+
+
+
+
+
+
 
 const jStat = require("jstat");
 
@@ -76,6 +84,7 @@ async function runInstance(createModel: ModelCreationFunction<any>, createScenar
   simulation.reset();
   metronome.resetCurrentTime();
   stats.reset();
+  SeededMath.reseed()
 
   // create the model of the system and the scenario
   const scenario = createScenario(createModel);
@@ -246,15 +255,61 @@ function getModelFromModelName(modelName: String): ModelCreationFunction<any> {
 function getInjectorFromScenarioName(scenarioName: String): (params: number[]) => ScenarioFunction {
   if (scenarioName == "latency")
     return latencyScenarioParamInjector;
-  if (scenarioName == "load")
-    return loadScenarioParamInjector;
+  if (scenarioName == "latency2")
+    return latency2ScenarioParamInjector;
+  //if (scenarioName == "load")
+  //  return loadScenarioParamInjector;
+  if (scenarioName == "load2")
+    return load2ScenarioParamInjector;
   if (scenarioName == "availability")
     return availabilityScenarioParamInjector;
-  if (scenarioName == "capacity")
-    return capacityScenarioParamInjector;
+  //if (scenarioName == "capacity")
+  //  return capacityScenarioParamInjector;
   throw `No Injector available for ${scenarioName}`
 }
 
+function latency2ScenarioParamInjector(params: number[]): ScenarioFunction {
+  return (modelCreator: ModelCreationFunction<Model<any>>): Scenario => {
+    simulation.keyspaceMean = 10000;
+    simulation.keyspaceStd = 500;
+
+    const z = new Z();
+    const model = modelCreator(z);
+    const y = new Y(model.entry);
+    const timeout = new PerRequestTimeout(y);
+    const x = new X(timeout);
+
+    // enforces timeout between X and Y
+    timeout.timeout = 60 * TICK_DILATION + 10
+
+    //  add extra properties for models that can take advantage of it
+    x.beforeHook = (event: Event) => {
+      const e = event as Event & { readAtTime: number; readAtTimeName: string; timeout: number }
+      const key = parseInt(event.key.slice(2));
+      e.readAtTime = [55, 60, 65][key % 3] * TICK_DILATION;
+      e.readAtTimeName = ["fast", "medium", "slow"][key % 3];
+      e.timeout = e.readAtTime + 10
+    }
+
+    /*    PARAM changes   */
+    // PARAM load
+    simulation.eventsPer1000Ticks = params[0] / TICK_DILATION
+    // PARAM z's capacity
+    z.inQueue = new FIFOServiceQueue(0, 500);
+    // PARAM z's latency
+    z.mean = Math.floor(params[1])
+    // PARAM z's availability
+    z.availability = params[2]
+    //PARAM z's new latency
+    metronome.setTimeout(() => z.mean = Math.floor(params[3]), 8000 * TICK_DILATION) // index 4 = 2000 * TICK_DILATION
+
+    return {
+      name: "SteadyLatency",
+      model,
+      entry: x
+    }
+  }
+}
 
 function latencyScenarioParamInjector(params: number[]): ScenarioFunction {
   return (modelCreator: ModelCreationFunction<Model<any>>): Scenario => {
@@ -299,6 +354,42 @@ function latencyScenarioParamInjector(params: number[]): ScenarioFunction {
   }
 }
 
+// just like the load scenario, except fixed capacity
+function load2ScenarioParamInjector(params: number[]): ScenarioFunction {
+  return (modelCreator: ModelCreationFunction<Model<any>>): Scenario => {
+    simulation.keyspaceMean = 10000;
+    simulation.keyspaceStd = 500;
+
+    const z = new Z();
+    const model = modelCreator(z);
+    const y = new Y(model.entry);
+    const x = new X(y);
+
+    //  add extra properties for models that can take advantage of it
+    x.beforeHook = (event: Event) => {
+      const key = parseInt(event.key.slice(2));
+      (<Event & { priority: number }>event).priority = key % 3;
+    }
+
+    /*    PARAM changes   */
+    // PARAM load
+    simulation.eventsPer1000Ticks = params[0] / TICK_DILATION
+    // PARAM z's capacity
+    z.inQueue = new FIFOQueue(1, 500); // 28 in the original model
+    // PARAM z's latency
+    z.mean = Math.floor(params[1])
+    // PARAM z's availability
+    z.availability = params[2]
+    //PARAM x's new Load
+    metronome.setTimeout(() => simulation.eventsPer1000Ticks = params[3] / TICK_DILATION, 8000 * TICK_DILATION) // index 4 = 2000 * TICK_DILATION
+
+    return {
+      name: "SteadyLoad",
+      model,
+      entry: x
+    }
+  }
+}
 
 function loadScenarioParamInjector(params: number[]): ScenarioFunction {
   return (modelCreator: ModelCreationFunction<Model<any>>): Scenario => {

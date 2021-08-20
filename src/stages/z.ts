@@ -1,5 +1,6 @@
-import { Stage, Event, metronome, normal, stats } from "@byu-se/quartermaster";
+import { Stage, Event, metronome, stats } from "@byu-se/quartermaster";
 import { SAMPLE_DURATION, TICK_DILATION } from "..";
+import { SeededMath } from "../util";
 
 export class Z extends Stage {
   // stats
@@ -36,7 +37,7 @@ export class Z extends Stage {
     // mark capacity
     event.capacity = this.inQueue.getNumWorkers();
 
-    if (Math.random() > this.availability) {
+    if (SeededMath.random() > this.availability) {
       throw "fail";
     }
 
@@ -50,6 +51,25 @@ export class Z extends Stage {
   }
 
   getLatency() {
-    return Math.max(1, normal(this.mean, this.std));
+    return Math.max(1, this.seededNormal(this.mean, this.std));
   }
+
+
+  seededNormal(mean: number, std: number): number {
+    return Math.floor(this.seededStandardNormal() * std + mean);
+  }
+
+  seededStandardNormal(): number {
+  let u: number = 0;
+  let v: number = 0;
+  while (u == 0)
+    u = SeededMath.random();
+  while (v == 0)
+    v = SeededMath.random();
+  const value = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  if (isNaN(value)) {
+    console.error("NAN achieved with values", u, v)
+  }
+  return value
+}
 }
