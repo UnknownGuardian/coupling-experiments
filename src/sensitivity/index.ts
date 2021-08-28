@@ -263,6 +263,8 @@ function getInjectorFromScenarioName(scenarioName: String): (params: number[]) =
     return load2ScenarioParamInjector;
   if (scenarioName == "availability")
     return availabilityScenarioParamInjector;
+  if (scenarioName == "availability2")
+    return availability2ScenarioParamInjector;
   //if (scenarioName == "capacity")
   //  return capacityScenarioParamInjector;
   throw `No Injector available for ${scenarioName}`
@@ -426,6 +428,48 @@ function loadScenarioParamInjector(params: number[]): ScenarioFunction {
     }
   }
 }
+
+function availability2ScenarioParamInjector(params: number[]): ScenarioFunction {
+  return (modelCreator: ModelCreationFunction<Model<any>>): Scenario => {
+    simulation.keyspaceMean = 10000;
+    simulation.keyspaceStd = 500;
+
+    metronome.realSleepTime = 3;
+    metronome.realSleepFrequency = 1000;
+
+
+    const z = new Z();
+    const model = modelCreator(z);
+    const y = new Y(model.entry);
+    const x = new X(y);
+
+    //  add extra properties for models that can take advantage of it
+    x.beforeHook = (event: Event) => {
+      const key = parseInt(event.key.slice(2));
+      (<Event & { priority: number }>event).priority = key % 3;
+    }
+
+    /*    PARAM changes   */
+    // PARAM load
+    simulation.eventsPer1000Ticks = params[0] / TICK_DILATION
+    // PARAM z's capacity
+    z.inQueue = new FIFOServiceQueue(1, 500);
+    // PARAM z's latency
+    z.mean = Math.floor(params[1])
+    // PARAM z's availability
+    z.availability = params[2]
+    //PARAM z's new availability
+    metronome.setTimeout(() => z.availability = params[3], 8000 * TICK_DILATION) // index 4 = 2000 * TICK_DILATION
+
+    return {
+      name: "SteadyAvailability",
+      model,
+      entry: x
+    }
+  }
+}
+
+
 
 let time = 0;
 
