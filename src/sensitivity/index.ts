@@ -1,7 +1,7 @@
 import { unparse, parse } from "papaparse"
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from "fs";
 import { join } from "path";
-import { Event, FIFOQueue, FIFOServiceQueue, metronome, simulation, stats } from "@byu-se/quartermaster";
+import { Event, FIFOQueue, FIFOServiceQueue, MathFunctions, metronome, simulation, stats } from "@byu-se/quartermaster";
 import { PerRequestTimeout, X, Y, Z } from "../stages";
 import {
   createNaiveModel,
@@ -84,7 +84,8 @@ async function runInstance(createModel: ModelCreationFunction<any>, createScenar
   simulation.reset();
   metronome.resetCurrentTime();
   stats.reset();
-  SeededMath.reseed()
+  SeededMath.reseed();
+  MathFunctions.random = SeededMath.random
 
   // create the model of the system and the scenario
   const scenario = createScenario(createModel);
@@ -96,6 +97,9 @@ async function runInstance(createModel: ModelCreationFunction<any>, createScenar
   // run the simulation
   await simulation.run(scenario.entry, 10_000);
   console.log(`Experiment ${name} finished. Metronome stopped at`, metronome.now());
+  if (metronome.now() < 145000) {
+    console.log(`\t\t\t\t\tSHORT ${name}`)
+  }
 
   // record the time series results
   const rows = getSlimRows();
@@ -288,6 +292,8 @@ function latency2ScenarioParamInjector(params: number[]): ScenarioFunction {
     x.beforeHook = (event: Event) => {
       const e = event as Event & { readAtTime: number; readAtTimeName: string; timeout: number }
       const key = parseInt(event.key.slice(2));
+      // keys are not determinisitic, so instead we random sample
+      //const key = Math.floor(SeededMath.random() * 999999);
       e.readAtTime = [55, 60, 65][key % 3] * TICK_DILATION;
       e.readAtTimeName = ["fast", "medium", "slow"][key % 3];
       e.timeout = e.readAtTime + 10

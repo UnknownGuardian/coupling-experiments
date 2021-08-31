@@ -31,6 +31,9 @@ export class PassthroughCache extends LRUCache {
     // fire off call to wrap, but don't wait for call to complete
     this.makeCallToBeCached(event);
 
+    if (!event.readAtTime)
+      throw "NO READ AT TIME"
+
     // wait for Tr
     const tr = event.readAtTime || this.readAtTime
     await metronome.wait(tr);
