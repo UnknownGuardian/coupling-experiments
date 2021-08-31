@@ -17,7 +17,7 @@ export class SeededMath {
     SeededMath.rand = this.sfc32(seed(), seed(), seed(), seed())
   }
   static random():number {
-    if(!this.rand) {
+    if(!SeededMath.rand) {
       SeededMath.reseed();
     }
     return SeededMath.rand() as number;

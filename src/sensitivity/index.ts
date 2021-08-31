@@ -181,6 +181,7 @@ function getSlimRows(): SlimRow[] {
     const gMedium = subsetEvents.filter(e => (e as any).readAtTimeName == "medium");
     const gSlow = subsetEvents.filter(e => (e as any).readAtTimeName == "slow");
 
+
     const meanResponseGFastLatency: number = mean(gFast.map(e => e.responseTime.endTime - e.responseTime.startTime));
     const meanResponseGMediumLatency: number = mean(gMedium.map(e => e.responseTime.endTime - e.responseTime.startTime));
     const meanResponseGSlowLatency: number = mean(gSlow.map(e => e.responseTime.endTime - e.responseTime.startTime));
