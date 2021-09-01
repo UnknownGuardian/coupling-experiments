@@ -1,0 +1,17 @@
+{
+    "scenario": "load2",
+    "models": [
+        "A",
+        "B",
+        "C",
+        "D"
+    ],
+    "independent": "loadFromX",
+    "dependent": [
+        "loadFromY",
+        "meanLatencyFromY",
+        "meanResponseP1Availability",
+        "meanResponseP2Availability",
+        "meanResponseP3Availability"
+    ]
+}
