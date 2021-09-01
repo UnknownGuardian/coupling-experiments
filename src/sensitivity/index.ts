@@ -95,7 +95,7 @@ async function runInstance(createModel: ModelCreationFunction<any>, createScenar
   const name = `${modelId}-${id}-${scenario.name}`
 
   // run the simulation
-  await simulation.run(scenario.entry, 10_000);
+  await simulation.run(scenario.entry, 20_000);
   console.log(`Experiment ${name} finished. Metronome stopped at`, metronome.now());
   if (metronome.now() < 145000) {
     console.log(`\t\t\t\t\tSHORT ${name}`)

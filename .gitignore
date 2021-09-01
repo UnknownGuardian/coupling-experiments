@@ -20,3 +20,6 @@ thesis/
 .vscode/settings.json
 
 out/sensitivity/comparison
+
+# Remove simulation output unless explicitly added
+out/sensitivity/*/*/sim
