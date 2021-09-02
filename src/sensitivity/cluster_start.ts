@@ -18,11 +18,11 @@ type WorkerCommand = { cmd: string, data: any }
  * Decides how many workers, N, to spin up. (1 less than ALL CPUs)
  * Divides the input_params into N groups
  * Sends input_params group to applicable worker
- * After worker finishes each, it reports completion rate and
- *      writes file with correct ID
+ * After worker finishes each, it reports completion rate  (todo)
+ *       and writes file with correct ID
  * 
  * Master periodically prints out progress of each
- * When master gets all, it terminates
+ * When master gets all, it terminates (todo)
  */
 
 type Work = { id: number, inputs: number[] }

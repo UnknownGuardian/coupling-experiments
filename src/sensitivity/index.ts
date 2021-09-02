@@ -31,7 +31,7 @@ import { SeededMath } from "../util";
 
 
 const jStat = require("jstat");
-
+/*
 // Read the inputs needed to run the simulations
 const outputDirectory = join(__dirname, "..", "..", "out", "sensitivity");
 
@@ -76,10 +76,10 @@ async function run(): Promise<void> {
     }
   }
 
-}
+}*/
 
 
-async function runInstance(createModel: ModelCreationFunction<any>, createScenario: ScenarioFunction, outputDir: string, id: number): Promise<void> {
+export async function runInstance(createModel: ModelCreationFunction<any>, createScenario: ScenarioFunction, outputDir: string, id: number): Promise<void> {
   // reset the environment
   simulation.reset();
   metronome.resetCurrentTime();
@@ -229,7 +229,7 @@ function optionalArray<T>(array: T[][], index: number, defaultValue: T[]): T[] {
 
 
 
-function getModelFromModelName(modelName: String): ModelCreationFunction<any> {
+export function getModelFromModelName(modelName: String): ModelCreationFunction<any> {
   if (modelName == "A")
     return createNaiveModel;
   if (modelName == "B")
@@ -257,7 +257,7 @@ function getModelFromModelName(modelName: String): ModelCreationFunction<any> {
   throw `No Model available for ${modelName}`
 }
 
-function getInjectorFromScenarioName(scenarioName: String): (params: number[]) => ScenarioFunction {
+export function getInjectorFromScenarioName(scenarioName: String): (params: number[]) => ScenarioFunction {
   if (scenarioName == "latency")
     return latencyScenarioParamInjector;
   if (scenarioName == "latency2")
@@ -343,6 +343,7 @@ function latency2ScenarioParamInjector(params: number[]): ScenarioFunction {
     // enforces timeout between X and Y
     timeout.timeout = 60 * TICK_DILATION + 10
 
+
     //  add extra properties for models that can take advantage of it
     x.beforeHook = (event: Event) => {
       const e = event as Event & { readAtTime: number; readAtTimeName: string; timeout: number }
@@ -368,7 +369,7 @@ function latency2ScenarioParamInjector(params: number[]): ScenarioFunction {
     metronome.setInterval(() => {
       //console.log((z.inQueue as FIFOServiceQueue).length())
       //console.log(stats.get("poolSize"), stats.get("meanQueueWaitTime"), stats.get("queueRejectCount"))
-    }, 5000 * TICK_DILATION) // index 4 = 2000 * TICK_DILATION
+    }, 30000 * TICK_DILATION) // index 4 = 2000 * TICK_DILATION
 
     return {
       name: "SteadyLatency",
