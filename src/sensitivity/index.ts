@@ -20,7 +20,7 @@ import {
   Model
 } from "../models";
 import { Scenario, ScenarioFunction } from "../scenarios";
-import { TICK_DILATION } from "..";
+import { SAMPLE_DURATION, TICK_DILATION } from "..";
 import { SeededMath } from "../util";
 
 
@@ -72,7 +72,7 @@ async function run(): Promise<void> {
       console.log(`Model ${model} (${modelIndex + 1}/${models.length}) Simulation: ${i + 1}/${paramCSV.length}`, params)
 
       const createScenario = scenarioInjector(params);
-      await runInstance(createModel, createScenario, outputDir, i);
+      await runInstance(createModel, createScenario, outputDir, i).catch(e => console.log('xxxxxxxxxx'));
     }
   }
 
@@ -95,7 +95,7 @@ async function runInstance(createModel: ModelCreationFunction<any>, createScenar
   const name = `${modelId}-${id}-${scenario.name}`
 
   // run the simulation
-  await simulation.run(scenario.entry, 20_000);
+  await simulation.run(scenario.entry, 20_000).catch(e => console.log('Caught simulation.run abort', e));
   console.log(`Experiment ${name} finished. Metronome stopped at`, metronome.now());
   if (metronome.now() < 145000) {
     console.log(`\t\t\t\t\tSHORT ${name}`)
@@ -262,6 +262,8 @@ function getInjectorFromScenarioName(scenarioName: String): (params: number[]) =
     return latencyScenarioParamInjector;
   if (scenarioName == "latency2")
     return latency2ScenarioParamInjector;
+  if (scenarioName == "latency2earlyexit")
+    return latency2EarlyExitScenarioParamInjector;
   //if (scenarioName == "load")
   //  return loadScenarioParamInjector;
   if (scenarioName == "load2")
@@ -275,7 +277,7 @@ function getInjectorFromScenarioName(scenarioName: String): (params: number[]) =
   throw `No Injector available for ${scenarioName}`
 }
 
-function latency2ScenarioParamInjector(params: number[]): ScenarioFunction {
+function latency2EarlyExitScenarioParamInjector(params: number[]): ScenarioFunction {
   return (modelCreator: ModelCreationFunction<Model<any>>): Scenario => {
     simulation.keyspaceMean = 10000;
     simulation.keyspaceStd = 500;
@@ -311,6 +313,62 @@ function latency2ScenarioParamInjector(params: number[]): ScenarioFunction {
     z.availability = params[2]
     //PARAM z's new latency
     metronome.setTimeout(() => z.mean = Math.floor(params[3]), 8000 * TICK_DILATION) // index 4 = 2000 * TICK_DILATION
+
+    //simulation.debug = true;
+    metronome.setTimeout(async () => {
+      console.log("Early abort, trying to stop metronome")
+      await metronome.stop(true);
+      console.log("metronome stopped")
+    }, SAMPLE_DURATION * 35)
+
+    return {
+      name: "SteadyLatency",
+      model,
+      entry: x
+    }
+  }
+}
+
+function latency2ScenarioParamInjector(params: number[]): ScenarioFunction {
+  return (modelCreator: ModelCreationFunction<Model<any>>): Scenario => {
+    simulation.keyspaceMean = 10000;
+    simulation.keyspaceStd = 500;
+
+    const z = new Z();
+    const model = modelCreator(z);
+    const y = new Y(model.entry);
+    const timeout = new PerRequestTimeout(y);
+    const x = new X(timeout);
+
+    // enforces timeout between X and Y
+    timeout.timeout = 60 * TICK_DILATION + 10
+
+    //  add extra properties for models that can take advantage of it
+    x.beforeHook = (event: Event) => {
+      const e = event as Event & { readAtTime: number; readAtTimeName: string; timeout: number }
+      const key = parseInt(event.key.slice(2));
+      // keys are not determinisitic, so instead we random sample
+      //const key = Math.floor(SeededMath.random() * 999999);
+      e.readAtTime = [55, 60, 65][key % 3] * TICK_DILATION;
+      e.readAtTimeName = ["fast", "medium", "slow"][key % 3];
+      e.timeout = e.readAtTime + 10;
+    }
+
+    /*    PARAM changes   */
+    // PARAM load
+    simulation.eventsPer1000Ticks = params[0] / TICK_DILATION
+    // PARAM z's capacity
+    z.inQueue = new FIFOServiceQueue(0, 500);
+    // PARAM z's latency
+    z.mean = Math.floor(params[1])
+    // PARAM z's availability
+    z.availability = params[2]
+    //PARAM z's new latency
+    metronome.setTimeout(() => z.mean = Math.floor(params[3]), 8000 * TICK_DILATION) // index 4 = 2000 * TICK_DILATION
+    metronome.setInterval(() => {
+      //console.log((z.inQueue as FIFOServiceQueue).length())
+      //console.log(stats.get("poolSize"), stats.get("meanQueueWaitTime"), stats.get("queueRejectCount"))
+    }, 5000 * TICK_DILATION) // index 4 = 2000 * TICK_DILATION
 
     return {
       name: "SteadyLatency",

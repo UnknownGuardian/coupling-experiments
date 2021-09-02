@@ -10,8 +10,8 @@
     "dependent": [
         "loadFromY",
         "meanLatencyFromY",
-        "meanResponseP1Availability",
-        "meanResponseP2Availability",
-        "meanResponseP3Availability"
+        "meanResponseP1Latency",
+        "meanResponseP2Latency",
+        "meanResponseP3Latency"
     ]
 }
