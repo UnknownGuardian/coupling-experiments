@@ -366,10 +366,7 @@ function latency2ScenarioParamInjector(params: number[]): ScenarioFunction {
     z.availability = params[2]
     //PARAM z's new latency
     metronome.setTimeout(() => z.mean = Math.floor(params[3]), 8000 * TICK_DILATION) // index 4 = 2000 * TICK_DILATION
-    metronome.setInterval(() => {
-      //console.log((z.inQueue as FIFOServiceQueue).length())
-      //console.log(stats.get("poolSize"), stats.get("meanQueueWaitTime"), stats.get("queueRejectCount"))
-    }, 30000 * TICK_DILATION) // index 4 = 2000 * TICK_DILATION
+
 
     return {
       name: "SteadyLatency",

@@ -60,16 +60,16 @@ export class Z extends Stage {
   }
 
   seededStandardNormal(): number {
-  let u: number = 0;
-  let v: number = 0;
-  while (u == 0)
-    u = SeededMath.random();
-  while (v == 0)
-    v = SeededMath.random();
-  const value = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-  if (isNaN(value)) {
-    console.error("NAN achieved with values", u, v)
+    let u: number = 0;
+    let v: number = 0;
+    while (u == 0)
+      u = SeededMath.random();
+    while (v == 0)
+      v = SeededMath.random();
+    const value = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+    if (isNaN(value)) {
+      console.error("NAN achieved with values", u, v)
+    }
+    return value
   }
-  return value
-}
 }

@@ -71,7 +71,7 @@ function primaryStartup(): void {
   const progressMessages: ProgressMessage[] = [];
 
   const printInterval = setInterval(() => {
-    console.log(`\t\t\t\t\t\t\t${jobs.length} Jobs Available`);
+    console.log(`\t\t\t\t\t\t\t\t\t\t\t\t${jobs.length} Jobs Available`);
   }, 10_000);
 
   function messageHandler(msg: PrimaryCommand) {
@@ -102,10 +102,10 @@ function primaryStartup(): void {
 
 // PRIMARY FUNCTIONS
 function createJobs(outputDir: string, simulationData: any, paramCSV: number[][]): void {
+  const workSize = 10;
   const scenario = simulationData.scenario;
 
   for (const model of simulationData.models) {
-    const workSize = 50;
     let work: Work[] = [];
     // loop to data.length - 1 since last row is empty
     for (let i = 0; i < paramCSV.length - 1; i++) {
