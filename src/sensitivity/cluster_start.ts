@@ -1,7 +1,15 @@
-import cluster from 'cluster';
-import http from 'http';
+import cluster, { worker } from 'cluster';
 import { cpus } from 'os';
 import process from 'process';
+import { unparse, parse } from "papaparse"
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from "fs";
+import { join } from "path";
+import { runJob } from './index_cluster';
+
+
+type ProgressMessage = { id: number, current: number, total: number }
+type PrimaryCommand = { cmd: string, data: any }
+type WorkerCommand = { cmd: string, data: any }
 
 /**
  * Might look something like this:
@@ -17,39 +25,135 @@ import process from 'process';
  * When master gets all, it terminates
  */
 
+type Work = { id: number, inputs: number[] }
+type Job = { outputDir: string, scenario: string, model: string, work: Work[] }
+const jobs: Job[] = [];
+
+
+// When updating to Node 16, this needs to be cluster.isPrimary
 if (cluster.isMaster) {
+  primaryStartup();
+} else {
+  workerStartup();
+}
 
-  // Keep track of http requests
-  let numReqs = 0;
-  setInterval(() => {
-    console.log(`numReqs = ${numReqs}`);
-  }, 1000);
+function primaryStartup(): void {
 
-  // Count requests
-  function messageHandler(msg: any) {
-    if (msg.cmd && msg.cmd === 'notifyRequest') {
-      numReqs += 1;
-    }
+  // Read the inputs needed to run the simulations
+  const outputDirectory = join(__dirname, "..", "..", "out", "sensitivity");
+
+  // Consisting of 1) The simulation JSON 
+  const simulationPath = join(outputDirectory, "simulation.json");
+  const simulationData = require(simulationPath);
+  const scenarioName = simulationData.scenario;
+
+  // and 2) The inputs to each simulation
+  const paramPath = join(outputDirectory, "param_values.txt");
+  const paramFile = readFileSync(paramPath, 'utf-8')
+  const paramCSV: number[][] = parse(paramFile, { delimiter: " ", dynamicTyping: true }).data as number[][];
+
+  // Prepare a new directory for a copy of the inputs and all the outputs to be dumped
+  const timeseriesDir = join(outputDirectory, `results-${scenarioName}-${+new Date()}`)
+  mkdirSync(timeseriesDir);
+  copyFileSync(paramPath, join(timeseriesDir, "param_values.txt"))
+  copyFileSync(simulationPath, join(timeseriesDir, "simulation.json"))
+  for (const model of simulationData.models) {
+    const modelDir = join(timeseriesDir, model)
+    mkdirSync(modelDir);
+    const outputDir = join(timeseriesDir, model, "sim");
+    mkdirSync(outputDir);
   }
 
-  // Start workers and listen for messages containing notifyRequest
+  // break up the inputs into chunks we can send to workers
+  createJobs(timeseriesDir, simulationData, paramCSV);
+
+
+  const progressMessages: ProgressMessage[] = [];
+
+  const printInterval = setInterval(() => {
+    console.log(`\t\t\t\t\t\t\t${jobs.length} Jobs Available`);
+  }, 10_000);
+
+  function messageHandler(msg: PrimaryCommand) {
+    if (msg.cmd == "progress_report") {
+      const prog = msg.data as ProgressMessage;
+      progressMessages[prog.id] = prog;
+    }
+    else if (msg.cmd == "request_task") {
+      const workerId = msg.data as string;
+      assignTask(workerId);
+    }
+    //progressMessages[msg.id] = msg;
+  }
+
   const numCPUs = cpus().length;
-  for (let i = 0; i < numCPUs; i++) {
+  const cpusToUse = numCPUs > 2 ? numCPUs - 1 : 1;
+  for (let i = 0; i < cpusToUse; i++) {
     cluster.fork();
   }
 
   for (const id in cluster.workers) {
+    // add progressListeners
     cluster.workers[id]?.on('message', messageHandler);
   }
+  console.log("Master is Up");
+  console.log(`${jobs.length} Jobs Available`)
+}
 
-} else {
+// PRIMARY FUNCTIONS
+function createJobs(outputDir: string, simulationData: any, paramCSV: number[][]): void {
+  const scenario = simulationData.scenario;
 
-  // Worker processes have a http server.
-  http.Server((req, res) => {
-    res.writeHead(200);
-    res.end('hello world\n');
+  for (const model of simulationData.models) {
+    const workSize = 50;
+    let work: Work[] = [];
+    // loop to data.length - 1 since last row is empty
+    for (let i = 0; i < paramCSV.length - 1; i++) {
+      work.push({ id: i, inputs: paramCSV[i] })
+      if (work.length >= workSize) {
+        jobs.push({ outputDir, scenario, model, work });
+        work = [];
+      }
+    }
+    // remainder
+    if (work.length > 0) {
+      jobs.push({ outputDir, scenario, model, work });
+    }
+  }
+}
 
-    // Notify primary about the request
-    process.send({ cmd: 'notifyRequest' });
-  }).listen(8000);
+function assignTask(workerId: string): void {
+  const first = jobs.shift();
+  if (first) {
+    cluster.workers[workerId]?.send({ cmd: "assign_task", data: first })
+    return;
+  }
+  console.log(`[P] No more tasks available! (${jobs.length})`)
+}
+
+
+// WORKER FUNCTIONS
+function workerStartup(): void {
+  console.log(`[Worker] ${process.pid} started`);
+  // set up communications
+  process.on('message', workerMessageHandler);
+
+  // request first task
+  if (process)
+    process.send!({ cmd: "request_task", data: cluster.worker.id })
+}
+
+async function workerMessageHandler(msg: WorkerCommand): Promise<void> {
+  if (msg.cmd == "assign_task") {
+    const job = msg.data as Job;
+    console.log(`[Worker] ${process.pid} got a Task: Scenario ${job.scenario}, Model ${job.model}, ${job.work.length} inputs to run`);
+
+    // process job
+    await runJob(job.outputDir, job.scenario, job.model, job.work);
+
+    // get another task if there is any
+    process.send!({ cmd: "request_task", data: cluster.worker.id })
+    return;
+  }
+  console.warn(`[Worker] ${process.pid} got unhandled Message (${msg.cmd})`);
 }

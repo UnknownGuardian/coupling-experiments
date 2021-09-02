@@ -23,31 +23,28 @@ import { Scenario, ScenarioFunction } from "../scenarios";
 import { SAMPLE_DURATION, TICK_DILATION } from "..";
 import { SeededMath } from "../util";
 
-
 const jStat = require("jstat");
 
-// Read the inputs needed to run the simulations
-const outputDirectory = join(__dirname, "..", "..", "out", "sensitivity");
+export async function runJob(outputDir: string, scenario: string, model: string, work: { id: number, inputs: number[] }[]): Promise<void> {
+  const scenarioInjector = getInjectorFromScenarioName(scenario);
+  const createModel = getModelFromModelName(model);
 
-// Consisting of 1) The simulation JSON 
-const simulationPath = join(outputDirectory, "simulation.json");
-const simulationData = require(simulationPath);
-const scenarioName = simulationData.scenario;
+  const modelSimDir = join(outputDir, model, "sim");
 
-// and 2) The inputs to each simulation
-const paramPath = join(outputDirectory, "param_values.txt");
-const paramFile = readFileSync(paramPath, 'utf-8')
-const paramCSV: number[][] = parse(paramFile, { delimiter: " ", dynamicTyping: true }).data as number[][];
+  for (let i = 0; i < work.length; i++) {
+    const id = work[i].id;
+    const params = work[i].inputs;
 
-// Prepare a new directory for a copy of the inputs and all the outputs to be dumped
-const timeseriesDir = join(outputDirectory, `results-${scenarioName}-${+new Date()}`)
-mkdirSync(timeseriesDir);
-copyFileSync(paramPath, join(timeseriesDir, "param_values.txt"))
-copyFileSync(simulationPath, join(timeseriesDir, "simulation.json"))
+    console.log(`Simulation: ${i + 1}/${work.length}`, params)
 
 
-run();
-async function run(): Promise<void> {
+    const createScenario = scenarioInjector(params);
+    await runInstance(createModel, createScenario, modelSimDir, id);
+
+  }
+}
+
+/*async function run(): Promise<void> {
   const models = simulationData.models;
   for (let modelIndex = 0; modelIndex < models.length; modelIndex++) {
     const model = models[modelIndex];
@@ -70,7 +67,7 @@ async function run(): Promise<void> {
     }
   }
 
-}
+}*/
 
 
 async function runInstance(createModel: ModelCreationFunction<any>, createScenario: ScenarioFunction, outputDir: string, id: number): Promise<void> {
