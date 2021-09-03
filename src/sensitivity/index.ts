@@ -501,14 +501,18 @@ function availability2ScenarioParamInjector(params: number[]): ScenarioFunction 
     simulation.keyspaceMean = 10000;
     simulation.keyspaceStd = 500;
 
-    metronome.realSleepTime = 3;
-    metronome.realSleepFrequency = 1000;
+
 
 
     const z = new Z();
     const model = modelCreator(z);
     const y = new Y(model.entry);
     const x = new X(y);
+
+    if (model.id == "J") {
+      metronome.realSleepTime = 3;
+      metronome.realSleepFrequency = 1000;
+    }
 
     //  add extra properties for models that can take advantage of it
     x.beforeHook = (event: Event) => {
