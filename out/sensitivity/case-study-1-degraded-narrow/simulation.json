@@ -1,0 +1,20 @@
+{
+    "scenario": "latency2",
+    "models": [
+        "A",
+        "E",
+        "F",
+        "G"
+    ],
+    "independent": "meanLatencyFromZ",
+    "dependent": [
+        "meanLatencyFromY",
+        "meanAvailabilityFromY",
+        "meanResponseGFastLatency",
+        "meanResponseGMediumLatency",
+        "meanResponseGSlowLatency",
+        "meanResponseGFastAvailability",
+        "meanResponseGMediumAvailability",
+        "meanResponseGSlowAvailability"
+    ]
+}
