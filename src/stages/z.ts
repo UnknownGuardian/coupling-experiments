@@ -28,6 +28,7 @@ export class Z extends Stage {
 
 
   async workOn(event: Event & { capacity: number }): Promise<void> {
+    const avail = SeededMath.random();
     const latency = this.getLatency();
     if (isNaN(latency) || latency === Infinity) {
       throw "fail";
@@ -37,7 +38,7 @@ export class Z extends Stage {
     // mark capacity
     event.capacity = this.inQueue.getNumWorkers();
 
-    if (SeededMath.random() > this.availability) {
+    if (avail > this.availability) {
       throw "fail";
     }
 

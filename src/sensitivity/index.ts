@@ -85,6 +85,10 @@ export async function runInstance(createModel: ModelCreationFunction<any>, creat
   metronome.resetCurrentTime();
   stats.reset();
   SeededMath.reseed();
+  // 2 samples to see if stuff changes.
+  SeededMath.random();
+  SeededMath.random();
+
   MathFunctions.random = SeededMath.random
 
   // create the model of the system and the scenario
