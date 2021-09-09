@@ -1,6 +1,6 @@
 import { Stage, Event, metronome, stats } from "@byu-se/quartermaster";
 import { SAMPLE_DURATION } from ".";
-import { mean } from "../src/util";
+import { mean } from "../../util";
 
 
 type Hook = (event: Event) => void
@@ -9,7 +9,7 @@ type Hook = (event: Event) => void
  * No request queue/pool
  * No dependency queue/pool
  */
-export class X extends Stage {
+export class Client extends Stage {
   // stats
   public load: number = 0;
   public latencies: number[] = [];

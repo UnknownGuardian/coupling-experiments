@@ -1,6 +1,6 @@
 import { Stage, FIFOQueue, Event, metronome, normal, stats } from "@byu-se/quartermaster";
 import { SAMPLE_DURATION } from ".";
-import { mean } from "../src/util";
+import { mean } from "../../util";
 
 export class BuildService extends Stage {
 
