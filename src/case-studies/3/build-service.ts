@@ -1,6 +1,7 @@
 import { Stage, FIFOQueue, Event, metronome, normal, stats } from "@byu-se/quartermaster";
 import { SAMPLE_DURATION } from ".";
 import { mean } from "../../util";
+import { EfficientFIFOServiceQueue } from "./efficient-fifo-service-queue";
 
 export class BuildService extends Stage {
 
@@ -12,7 +13,7 @@ export class BuildService extends Stage {
 
   constructor(protected wrapped: Stage) {
     super();
-    this.inQueue = new FIFOQueue(Infinity, 220);
+    this.inQueue = new EfficientFIFOServiceQueue(Infinity, 220);
 
     metronome.setInterval(() => {
       stats.record("loadFromX", this.load);
@@ -20,7 +21,7 @@ export class BuildService extends Stage {
       stats.record("meanAvailabilityFromZ", mean(this.availabilities));
 
 
-      stats.record("queue-size", (<FIFOQueue>this.inQueue).length())
+      stats.record("queue-size", (<EfficientFIFOServiceQueue>this.inQueue).length())
       stats.record("throughput", this.completed / (1000 / SAMPLE_DURATION));
       this.load = 0;
       this.completed = 0;

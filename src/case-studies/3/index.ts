@@ -51,6 +51,9 @@ function reset() {
   MathFunctions.random = SeededMath.random
 }
 
+const t1 = 8000;
+const t2End = 20000;
+
 function scenario(model: CircleCIModel, params: number[]) {
   simulation.keyspaceMean = 1000;
   simulation.keyspaceStd = 200;
@@ -59,8 +62,10 @@ function scenario(model: CircleCIModel, params: number[]) {
   simulation.eventsPer1000Ticks = params[0];
   metronome.setTimeout(() => {
     simulation.eventsPer1000Ticks = params[3];
-  }, 8000)
-  model.db.
+  }, t1)
+
+  model.db.latencyBase = params[1];
+  model.db.availability = params[2];
 }
 
 async function runInstance(modelName: string, params: number[], simOutputDir: string, id: number) {
@@ -68,7 +73,8 @@ async function runInstance(modelName: string, params: number[], simOutputDir: st
   const model = getModelFromModelName(modelName);
   scenario(model, params);
 
-  const events = await simulation.run(model.client, 50000);
+  const eventsToSend = Math.floor((t1 / 1000 * params[0]) + ((t2End - t1) / 1000 * params[3]) + 5000);
+  const events = await simulation.run(model.client, eventsToSend);
 
   const accepted = events.filter(x => x.response === "success")
   const rejected = events.filter(x => x.response != "success")
@@ -125,6 +131,7 @@ export function record(filename: string): void {
   const meanAvailabilityFromZ: number[] = stats.getRecorded("meanAvailabilityFromZ");
   const throughput: number[] = stats.getRecorded("throughput");
   const zCapacity: number[] = stats.getRecorded("zCapacity");
+  const queueSize: number[] = stats.getRecorded("queue-size");
 
   const rows: IncidentPollRow[] = tick.map<IncidentPollRow>((_, index) => {
     return {
@@ -137,6 +144,7 @@ export function record(filename: string): void {
       meanAvailabilityFromZ: meanAvailabilityFromZ[index],
       throughput: throughput[index],
       zCapacity: zCapacity[index],
+      queueSize: queueSize[index]
     }
   });
 
