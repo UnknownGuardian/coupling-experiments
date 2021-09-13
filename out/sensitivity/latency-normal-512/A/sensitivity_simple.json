@@ -1,0 +1,50 @@
+{
+    "meanLatencyFromY": {
+        "T10": {
+            "st": 0.9996273323185784,
+            "conf": 0.08612646913788838
+        }
+    },
+    "meanAvailabilityFromY": {
+        "T10": {
+            "st": 0.9976455151206356,
+            "conf": 0.08653566079929749
+        }
+    },
+    "meanResponseGFastLatency": {
+        "T10": {
+            "st": 1.0000942322451891,
+            "conf": 0.07749636079835981
+        }
+    },
+    "meanResponseGMediumLatency": {
+        "T10": {
+            "st": 0.9996728762969789,
+            "conf": 0.08615494412934963
+        }
+    },
+    "meanResponseGSlowLatency": {
+        "T10": {
+            "st": 0.9993546659276712,
+            "conf": 0.0960427192947613
+        }
+    },
+    "meanResponseGFastAvailability": {
+        "T10": {
+            "st": 0.9999665013669118,
+            "conf": 0.08744278892369613
+        }
+    },
+    "meanResponseGMediumAvailability": {
+        "T10": {
+            "st": 0.9966521261808874,
+            "conf": 0.08698741039582243
+        }
+    },
+    "meanResponseGSlowAvailability": {
+        "T10": {
+            "st": 0.9948188948375568,
+            "conf": 0.07218091412788662
+        }
+    }
+}

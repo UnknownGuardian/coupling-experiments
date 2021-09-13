@@ -1,0 +1,32 @@
+{
+    "meanAvailabilityFromY": {
+        "T10": {
+            "st": 0.9931616347899637,
+            "conf": 0.16736199462503054
+        }
+    },
+    "loadFromY": {
+        "T10": {
+            "st": 0.0,
+            "conf": 0.0
+        }
+    },
+    "meanResponseP1Availability": {
+        "T10": {
+            "st": 0.9933059734311411,
+            "conf": 0.18989377864698107
+        }
+    },
+    "meanResponseP2Availability": {
+        "T10": {
+            "st": 0.9912083032524939,
+            "conf": 0.17581939913834174
+        }
+    },
+    "meanResponseP3Availability": {
+        "T10": {
+            "st": 0.9893570529126074,
+            "conf": 0.17147401481149654
+        }
+    }
+}
