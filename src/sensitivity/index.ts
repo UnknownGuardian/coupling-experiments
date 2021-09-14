@@ -299,11 +299,10 @@ function latency2EarlyExitScenarioParamInjector(params: number[]): ScenarioFunct
     x.beforeHook = (event: Event) => {
       const e = event as Event & { readAtTime: number; readAtTimeName: string; timeout: number }
       const key = parseInt(event.key.slice(2));
-      // keys are not determinisitic, so instead we random sample
-      //const key = Math.floor(SeededMath.random() * 999999);
-      e.readAtTime = [55, 60, 65][key % 3] * TICK_DILATION;
+      e.readAtTime = [15, 50, 55][key % 3] * TICK_DILATION;
       e.readAtTimeName = ["fast", "medium", "slow"][key % 3];
-      e.timeout = e.readAtTime + 10
+      if (model.id == "G")
+        e.timeout = e.readAtTime + 10;
     }
 
     /*    PARAM changes   */
@@ -352,11 +351,10 @@ function latency2ScenarioParamInjector(params: number[]): ScenarioFunction {
     x.beforeHook = (event: Event) => {
       const e = event as Event & { readAtTime: number; readAtTimeName: string; timeout: number }
       const key = parseInt(event.key.slice(2));
-      // keys are not determinisitic, so instead we random sample
-      //const key = Math.floor(SeededMath.random() * 999999);
-      e.readAtTime = [55, 60, 65][key % 3] * TICK_DILATION;
+      e.readAtTime = [15, 50, 55][key % 3] * TICK_DILATION;
       e.readAtTimeName = ["fast", "medium", "slow"][key % 3];
-      e.timeout = e.readAtTime + 10;
+      if (model.id == "G")
+        e.timeout = e.readAtTime + 10;
     }
 
     /*    PARAM changes   */
@@ -398,9 +396,10 @@ function latencyScenarioParamInjector(params: number[]): ScenarioFunction {
     x.beforeHook = (event: Event) => {
       const e = event as Event & { readAtTime: number; readAtTimeName: string; timeout: number }
       const key = parseInt(event.key.slice(2));
-      e.readAtTime = [55, 60, 65][key % 3] * TICK_DILATION;
+      e.readAtTime = [15, 50, 55][key % 3] * TICK_DILATION;
       e.readAtTimeName = ["fast", "medium", "slow"][key % 3];
-      e.timeout = e.readAtTime + 10
+      if (model.id == "G")
+        e.timeout = e.readAtTime + 10;
     }
 
     /*    PARAM changes   */
