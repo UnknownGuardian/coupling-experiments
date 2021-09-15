@@ -1,6 +1,5 @@
-import { Stage, FIFOQueue, Event, metronome, stats } from "@byu-se/quartermaster";
+import { Stage, Event, metronome, stats } from "@byu-se/quartermaster";
 import { SAMPLE_DURATION } from "..";
-import { mean } from "../util";
 
 export class Y extends Stage {
   // stats

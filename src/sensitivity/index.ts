@@ -1,7 +1,7 @@
 import { unparse, parse } from "papaparse"
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync } from "fs";
 import { join } from "path";
-import { Event, FIFOQueue, FIFOServiceQueue, MathFunctions, metronome, simulation, stats } from "@byu-se/quartermaster";
+import { Event, FIFOServiceQueue, MathFunctions, metronome, simulation, stats } from "@byu-se/quartermaster";
 import { PerRequestTimeout, X, Y, Z } from "../stages";
 import {
   createNaiveModel,
@@ -406,7 +406,7 @@ function latencyScenarioParamInjector(params: number[]): ScenarioFunction {
     // PARAM load
     simulation.eventsPer1000Ticks = params[0] / TICK_DILATION
     // PARAM z's capacity
-    z.inQueue = new FIFOQueue(1, Math.floor(params[1]));
+    z.inQueue = new FIFOServiceQueue(0, Math.floor(params[1]));
     // PARAM z's latency
     z.mean = Math.floor(params[2])
     // PARAM z's availability
@@ -443,7 +443,7 @@ function load2ScenarioParamInjector(params: number[]): ScenarioFunction {
     // PARAM load
     simulation.eventsPer1000Ticks = params[0] / TICK_DILATION
     // PARAM z's capacity
-    z.inQueue = new FIFOQueue(1, 500); // 28 in the original model
+    z.inQueue = new FIFOServiceQueue(0, 500); // 28 in the original model
     // PARAM z's latency
     z.mean = Math.floor(params[1])
     // PARAM z's availability
@@ -479,7 +479,7 @@ function loadScenarioParamInjector(params: number[]): ScenarioFunction {
     // PARAM load
     simulation.eventsPer1000Ticks = params[0] / TICK_DILATION
     // PARAM z's capacity
-    z.inQueue = new FIFOQueue(1, Math.floor(params[1]));
+    z.inQueue = new FIFOServiceQueue(0, Math.floor(params[1]));
     // PARAM z's latency
     z.mean = Math.floor(params[2])
     // PARAM z's availability
@@ -523,7 +523,7 @@ function availability2ScenarioParamInjector(params: number[]): ScenarioFunction 
     // PARAM load
     simulation.eventsPer1000Ticks = params[0] / TICK_DILATION
     // PARAM z's capacity
-    z.inQueue = new FIFOServiceQueue(1, 500);
+    z.inQueue = new FIFOServiceQueue(0, 500);
     // PARAM z's latency
     z.mean = Math.floor(params[1])
     // PARAM z's availability
@@ -583,7 +583,7 @@ function availabilityScenarioParamInjector(params: number[]): ScenarioFunction {
     // PARAM load
     simulation.eventsPer1000Ticks = params[0] / TICK_DILATION
     // PARAM z's capacity
-    z.inQueue = new FIFOServiceQueue(1, Math.floor(params[1]));
+    z.inQueue = new FIFOServiceQueue(0, Math.floor(params[1]));
     // PARAM z's latency
     z.mean = Math.floor(params[2])
     // PARAM z's availability
@@ -618,7 +618,7 @@ function capacityScenarioParamInjector(params: number[]): ScenarioFunction {
     // PARAM load
     simulation.eventsPer1000Ticks = params[0] / TICK_DILATION
     // PARAM z's capacity
-    z.inQueue = new FIFOQueue(1, Math.floor(params[1]));
+    z.inQueue = new FIFOServiceQueue(0, Math.floor(params[1]));
     // PARAM z's latency
     z.mean = Math.floor(params[2])
     // PARAM z's availability

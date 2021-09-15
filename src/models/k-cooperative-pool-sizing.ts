@@ -1,4 +1,4 @@
-import { FIFOQueue } from "@byu-se/quartermaster";
+import { FIFOServiceQueue } from "@byu-se/quartermaster";
 import { CooperativeQueuePool, Z } from "../stages"
 import { Model, ModelCreationFunction } from "./model";
 
@@ -12,7 +12,7 @@ type CooperativePoolSizingModel = Model<{
 
 export const createCooperativePoolSizingModel: ModelCreationFunction<CooperativePoolSizingModel> = (z: Z) => {
   const queuePool = new CooperativeQueuePool(z);
-  queuePool.inQueue = new FIFOQueue(Infinity, 28);
+  queuePool.inQueue = new FIFOServiceQueue(Infinity, 28);
 
   return {
     id: "K",

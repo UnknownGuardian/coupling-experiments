@@ -1,4 +1,4 @@
-import { FIFOQueue } from "@byu-se/quartermaster";
+import { FIFOServiceQueue } from "@byu-se/quartermaster";
 import { QueuePool, Z } from "../stages"
 import { Model, ModelCreationFunction } from "./model";
 
@@ -13,7 +13,7 @@ type LoadSheddingModel = Model<{
 export const createLoadSheddingModel: ModelCreationFunction<LoadSheddingModel> = (z: Z) => {
   const queuePool = new QueuePool(z);
 
-  queuePool.inQueue = new FIFOQueue(200, 28);
+  queuePool.inQueue = new FIFOServiceQueue(200, 28);
 
   return {
     id: "C",

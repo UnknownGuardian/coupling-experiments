@@ -1,4 +1,4 @@
-import { Event, FIFOQueue, metronome, simulation } from "@byu-se/quartermaster";
+import { Event, FIFOServiceQueue, metronome, simulation } from "@byu-se/quartermaster";
 import { TICK_DILATION } from "../";
 import { ModelCreationFunction } from "../models";
 import { X, Y, Z } from "../stages";
@@ -20,7 +20,7 @@ export const varyLoad: ScenarioFunction = (modelCreator: ModelCreationFunction<a
   const x = new X(y);
 
   // the load Z is provisioned to handle
-  z.inQueue = new FIFOQueue(1, 28);
+  z.inQueue = new FIFOServiceQueue(0, 28);
 
   // sine wave
   metronome.setInterval(() => {

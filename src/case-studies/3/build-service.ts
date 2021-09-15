@@ -1,4 +1,4 @@
-import { Stage, FIFOQueue, Event, metronome, normal, stats } from "@byu-se/quartermaster";
+import { Stage, FIFOServiceQueue, Event, metronome, normal, stats } from "@byu-se/quartermaster";
 import { SAMPLE_DURATION } from ".";
 import { mean } from "../../util";
 import { EfficientFIFOServiceQueue } from "./efficient-fifo-service-queue";
@@ -44,7 +44,7 @@ export class BuildService extends Stage {
 
   async workOn(event: Event): Promise<void> {
 
-    stats.max("max-queue-size", (this.inQueue as FIFOQueue).length());
+    stats.max("max-queue-size", (this.inQueue as FIFOServiceQueue).length());
     // do some work
     const latency = normal(8, 2);
     await metronome.wait(latency);

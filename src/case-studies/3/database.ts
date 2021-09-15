@@ -1,4 +1,4 @@
-import { Stage, FIFOQueue, Event, metronome, normal, exponential, stats } from "@byu-se/quartermaster";
+import { Stage, FIFOServiceQueue, Event, metronome, normal, exponential, stats } from "@byu-se/quartermaster";
 import { SAMPLE_DURATION } from ".";
 import { SeededMath } from "../../util";
 
@@ -16,7 +16,7 @@ export class Database extends Stage {
 
   constructor() {
     super();
-    this.inQueue = new FIFOQueue(1, 300);
+    this.inQueue = new FIFOServiceQueue(0, 300);
 
     metronome.setInterval(() => {
       stats.record("loadFromY", this.load);

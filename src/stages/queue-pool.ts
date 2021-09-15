@@ -1,4 +1,4 @@
-import { Stage, Event, stats, FIFOQueue, metronome } from "@byu-se/quartermaster";
+import { Stage, Event, stats, metronome } from "@byu-se/quartermaster";
 import { SAMPLE_DURATION } from "..";
 import { mean } from "../util";
 import { Z } from "./z";
@@ -16,7 +16,7 @@ export type FullQueueEvent = Event & { dependencyQueueFull: boolean }
  *  - No Queue
  *  - No Pool
  * 
- * 2. By setting componentSet.inQueue = new FIFOQueue(queue, pool)
+ * 2. By setting componentSet.inQueue = new FIFOServiceQueue(queue, pool)
  *  - A unbounded or bounded queue and a bounded pool.
  * 
  * 3. By extending Component Set
@@ -47,7 +47,7 @@ export class QueuePool extends Stage {
       stats.record("poolSize", this.inQueue.getNumWorkers() || 0);
       stats.record("poolUsage", -1);
       stats.record("meanQueueWaitTime", mean(this.queueTimes));
-      stats.record("queueSize", this.inQueue instanceof FIFOQueue ? this.inQueue.length() : -1);
+      stats.record("queueSize", this.inQueue.length());
       stats.record("enqueueCount", this.enqueueCount);
       stats.record("queueRejectCount", this.queueRejectCount);
       stats.record("meanTriesPerRequest", mean(this.tries));
