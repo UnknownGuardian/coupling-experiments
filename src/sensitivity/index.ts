@@ -23,61 +23,7 @@ import { Scenario, ScenarioFunction } from "../scenarios";
 import { SAMPLE_DURATION, TICK_DILATION } from "..";
 import { SeededMath } from "../util";
 
-
-
-
-
-
-
-
 const jStat = require("jstat");
-/*
-// Read the inputs needed to run the simulations
-const outputDirectory = join(__dirname, "..", "..", "out", "sensitivity");
-
-// Consisting of 1) The simulation JSON 
-const simulationPath = join(outputDirectory, "simulation.json");
-const simulationData = require(simulationPath);
-const scenarioName = simulationData.scenario;
-
-// and 2) The inputs to each simulation
-const paramPath = join(outputDirectory, "param_values.txt");
-const paramFile = readFileSync(paramPath, 'utf-8')
-const paramCSV: number[][] = parse(paramFile, { delimiter: " ", dynamicTyping: true }).data as number[][];
-
-// Prepare a new directory for a copy of the inputs and all the outputs to be dumped
-const timeseriesDir = join(outputDirectory, `results-${scenarioName}-${+new Date()}`)
-mkdirSync(timeseriesDir);
-copyFileSync(paramPath, join(timeseriesDir, "param_values.txt"))
-copyFileSync(simulationPath, join(timeseriesDir, "simulation.json"))
-
-
-run();
-async function run(): Promise<void> {
-  const models = simulationData.models;
-  for (let modelIndex = 0; modelIndex < models.length; modelIndex++) {
-    const model = models[modelIndex];
-
-    const modelDir = join(timeseriesDir, model)
-    mkdirSync(modelDir);
-    const outputDir = join(timeseriesDir, model, "sim");
-    mkdirSync(outputDir);
-
-    const scenarioInjector = getInjectorFromScenarioName(simulationData.scenario);
-    const createModel = getModelFromModelName(model);
-
-    // loop to data.length - 1 since last row is empty
-    for (let i = 0; i < paramCSV.length - 1; i++) {
-      const params = paramCSV[i];
-      console.log(`Model ${model} (${modelIndex + 1}/${models.length}) Simulation: ${i + 1}/${paramCSV.length}`, params)
-
-      const createScenario = scenarioInjector(params);
-      await runInstance(createModel, createScenario, outputDir, i).catch(e => console.log('xxxxxxxxxx'));
-    }
-  }
-
-}*/
-
 
 export async function runInstance(createModel: ModelCreationFunction<any>, createScenario: ScenarioFunction, outputDir: string, id: number): Promise<void> {
   // reset the environment
@@ -262,18 +208,10 @@ export function getModelFromModelName(modelName: String): ModelCreationFunction<
 }
 
 export function getInjectorFromScenarioName(scenarioName: String): (params: number[]) => ScenarioFunction {
-  if (scenarioName == "latency")
-    return latencyScenarioParamInjector;
   if (scenarioName == "latency2")
     return latency2ScenarioParamInjector;
-  if (scenarioName == "latency2earlyexit")
-    return latency2EarlyExitScenarioParamInjector;
-  //if (scenarioName == "load")
-  //  return loadScenarioParamInjector;
   if (scenarioName == "load2")
     return load2ScenarioParamInjector;
-  if (scenarioName == "availability")
-    return availabilityScenarioParamInjector;
   if (scenarioName == "availability2")
     return availability2ScenarioParamInjector;
   //if (scenarioName == "capacity")
@@ -281,56 +219,6 @@ export function getInjectorFromScenarioName(scenarioName: String): (params: numb
   throw `No Injector available for ${scenarioName}`
 }
 
-function latency2EarlyExitScenarioParamInjector(params: number[]): ScenarioFunction {
-  return (modelCreator: ModelCreationFunction<Model<any>>): Scenario => {
-    simulation.keyspaceMean = 10000;
-    simulation.keyspaceStd = 500;
-
-    const z = new Z();
-    const model = modelCreator(z);
-    const y = new Y(model.entry);
-    const timeout = new PerRequestTimeout(y);
-    const x = new X(timeout);
-
-    // enforces timeout between X and Y
-    timeout.timeout = 60 * TICK_DILATION + 10
-
-    //  add extra properties for models that can take advantage of it
-    x.beforeHook = (event: Event) => {
-      const e = event as Event & { readAtTime: number; readAtTimeName: string; timeout: number }
-      const key = parseInt(event.key.slice(2));
-      e.readAtTime = [15, 50, 55][key % 3] * TICK_DILATION;
-      e.readAtTimeName = ["fast", "medium", "slow"][key % 3];
-      if (model.id == "G")
-        e.timeout = e.readAtTime + 10;
-    }
-
-    /*    PARAM changes   */
-    // PARAM load
-    simulation.eventsPer1000Ticks = params[0] / TICK_DILATION
-    // PARAM z's capacity
-    z.inQueue = new FIFOServiceQueue(0, 500);
-    // PARAM z's latency
-    z.mean = Math.floor(params[1])
-    // PARAM z's availability
-    z.availability = params[2]
-    //PARAM z's new latency
-    metronome.setTimeout(() => z.mean = Math.floor(params[3]), 8000 * TICK_DILATION) // index 4 = 2000 * TICK_DILATION
-
-    //simulation.debug = true;
-    metronome.setTimeout(async () => {
-      console.log("Early abort, trying to stop metronome")
-      await metronome.stop(true);
-      console.log("metronome stopped")
-    }, SAMPLE_DURATION * 35)
-
-    return {
-      name: "SteadyLatency",
-      model,
-      entry: x
-    }
-  }
-}
 
 function latency2ScenarioParamInjector(params: number[]): ScenarioFunction {
   return (modelCreator: ModelCreationFunction<Model<any>>): Scenario => {
@@ -344,14 +232,14 @@ function latency2ScenarioParamInjector(params: number[]): ScenarioFunction {
     const x = new X(timeout);
 
     // enforces timeout between X and Y
-    timeout.timeout = 60 * TICK_DILATION + 10
+    timeout.timeout = 300 * TICK_DILATION + 10;
 
 
     //  add extra properties for models that can take advantage of it
     x.beforeHook = (event: Event) => {
       const e = event as Event & { readAtTime: number; readAtTimeName: string; timeout: number }
       const key = parseInt(event.key.slice(2));
-      e.readAtTime = [15, 50, 55][key % 3] * TICK_DILATION;
+      e.readAtTime = [40, 45, 50][key % 3] * TICK_DILATION;
       e.readAtTimeName = ["fast", "medium", "slow"][key % 3];
       if (model.id == "G")
         e.timeout = e.readAtTime + 10;
@@ -378,49 +266,6 @@ function latency2ScenarioParamInjector(params: number[]): ScenarioFunction {
   }
 }
 
-function latencyScenarioParamInjector(params: number[]): ScenarioFunction {
-  return (modelCreator: ModelCreationFunction<Model<any>>): Scenario => {
-    simulation.keyspaceMean = 10000;
-    simulation.keyspaceStd = 500;
-
-    const z = new Z();
-    const model = modelCreator(z);
-    const y = new Y(model.entry);
-    const timeout = new PerRequestTimeout(y);
-    const x = new X(timeout);
-
-    // enforces timeout between X and Y
-    timeout.timeout = 60 * TICK_DILATION + 10
-
-    //  add extra properties for models that can take advantage of it
-    x.beforeHook = (event: Event) => {
-      const e = event as Event & { readAtTime: number; readAtTimeName: string; timeout: number }
-      const key = parseInt(event.key.slice(2));
-      e.readAtTime = [15, 50, 55][key % 3] * TICK_DILATION;
-      e.readAtTimeName = ["fast", "medium", "slow"][key % 3];
-      if (model.id == "G")
-        e.timeout = e.readAtTime + 10;
-    }
-
-    /*    PARAM changes   */
-    // PARAM load
-    simulation.eventsPer1000Ticks = params[0] / TICK_DILATION
-    // PARAM z's capacity
-    z.inQueue = new FIFOServiceQueue(0, Math.floor(params[1]));
-    // PARAM z's latency
-    z.mean = Math.floor(params[2])
-    // PARAM z's availability
-    z.availability = params[3]
-    //PARAM z's new latency
-    metronome.setTimeout(() => z.mean = Math.floor(params[4]), 8000 * TICK_DILATION) // index 4 = 2000 * TICK_DILATION
-
-    return {
-      name: "SteadyLatency",
-      model,
-      entry: x
-    }
-  }
-}
 
 // just like the load scenario, except fixed capacity
 function load2ScenarioParamInjector(params: number[]): ScenarioFunction {
@@ -450,42 +295,6 @@ function load2ScenarioParamInjector(params: number[]): ScenarioFunction {
     z.availability = params[2]
     //PARAM x's new Load
     metronome.setTimeout(() => simulation.eventsPer1000Ticks = params[3] / TICK_DILATION, 8000 * TICK_DILATION) // index 4 = 2000 * TICK_DILATION
-
-    return {
-      name: "SteadyLoad",
-      model,
-      entry: x
-    }
-  }
-}
-
-function loadScenarioParamInjector(params: number[]): ScenarioFunction {
-  return (modelCreator: ModelCreationFunction<Model<any>>): Scenario => {
-    simulation.keyspaceMean = 10000;
-    simulation.keyspaceStd = 500;
-
-    const z = new Z();
-    const model = modelCreator(z);
-    const y = new Y(model.entry);
-    const x = new X(y);
-
-    //  add extra properties for models that can take advantage of it
-    x.beforeHook = (event: Event) => {
-      const key = parseInt(event.key.slice(2));
-      (<Event & { priority: number }>event).priority = key % 3;
-    }
-
-    /*    PARAM changes   */
-    // PARAM load
-    simulation.eventsPer1000Ticks = params[0] / TICK_DILATION
-    // PARAM z's capacity
-    z.inQueue = new FIFOServiceQueue(0, Math.floor(params[1]));
-    // PARAM z's latency
-    z.mean = Math.floor(params[2])
-    // PARAM z's availability
-    z.availability = params[3]
-    //PARAM x's new Load
-    metronome.setTimeout(() => simulation.eventsPer1000Ticks = params[4] / TICK_DILATION, 8000 * TICK_DILATION) // index 4 = 2000 * TICK_DILATION
 
     return {
       name: "SteadyLoad",
@@ -541,63 +350,6 @@ function availability2ScenarioParamInjector(params: number[]): ScenarioFunction 
 
 
 
-let time = 0;
-
-function availabilityScenarioParamInjector(params: number[]): ScenarioFunction {
-  return (modelCreator: ModelCreationFunction<Model<any>>): Scenario => {
-    simulation.keyspaceMean = 10000;
-    simulation.keyspaceStd = 500;
-
-    metronome.realSleepTime = 3;
-    metronome.realSleepFrequency = 1000;
-
-
-    const z = new Z();
-    const model = modelCreator(z);
-    const y = new Y(model.entry);
-    const x = new X(y);
-
-    //  add extra properties for models that can take advantage of it
-    x.beforeHook = (event: Event) => {
-      const key = parseInt(event.key.slice(2));
-      (<Event & { priority: number }>event).priority = key % 3;
-    }
-
-    //simulation.debug = true;
-
-    metronome.setInterval(() => {
-      let d = +new Date() - time;
-      time = time + d;
-      console.log("oo", metronome.now(), `+${d}`)
-    }, 1000)
-    /*metronome.setTimeout(() => {
-      console.log("xx", metronome.now())
-      metronome.debug(true)
-    }, 99999)
-    metronome.setTimeout(() => {
-      console.log("yy", metronome.now())
-      metronome.debug(true)
-    }, 100000)*/
-
-    /*    PARAM changes   */
-    // PARAM load
-    simulation.eventsPer1000Ticks = params[0] / TICK_DILATION
-    // PARAM z's capacity
-    z.inQueue = new FIFOServiceQueue(0, Math.floor(params[1]));
-    // PARAM z's latency
-    z.mean = Math.floor(params[2])
-    // PARAM z's availability
-    z.availability = params[3]
-    //PARAM z's new availability
-    metronome.setTimeout(() => z.availability = params[4], 8000 * TICK_DILATION) // index 4 = 2000 * TICK_DILATION
-
-    return {
-      name: "SteadyAvailability",
-      model,
-      entry: x
-    }
-  }
-}
 function capacityScenarioParamInjector(params: number[]): ScenarioFunction {
   return (modelCreator: ModelCreationFunction<Model<any>>): Scenario => {
     simulation.keyspaceMean = 10000;
