@@ -1,4 +1,4 @@
-import { Event, Queue, stats, Worker } from "@byu-se/quartermaster";
+import { Event, ServiceQueue, stats, Worker } from "@byu-se/quartermaster";
 
 
 type Item = { callback: Function, event: Event };
@@ -13,7 +13,7 @@ type Item = { callback: Function, event: Event };
  * 1) only accepting events if there is room
  * 2) sorting accepted events
  */
-export class PriorityQueue implements Queue {
+export class PriorityQueue implements ServiceQueue {
   // highest priority first, default to FIFO
   public priority: (event: Event) => number = (event: Event) => 1 / event.responseTime.startTime
   public readonly items: Item[] = [];
@@ -24,6 +24,7 @@ export class PriorityQueue implements Queue {
     this.setCapacity(capacity);
     this.setNumWorkers(numWorkers);
   }
+
 
   async enqueue(event: Event): Promise<Worker> {
     return new Promise<Worker>((resolve, reject) => {
@@ -45,6 +46,12 @@ export class PriorityQueue implements Queue {
   }
   hasWorkToDo(): boolean {
     return this.items.length > 0;
+  }
+  working(): number {
+    return this.workers.filter(w => w.event != null).length;
+  }
+  canEnqueue(): boolean {
+    return this.items.length < this.capacity;
   }
 
   add(item: Item): void {
