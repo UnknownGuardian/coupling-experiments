@@ -86,11 +86,22 @@ function primaryStartup(): void {
     //progressMessages[msg.id] = msg;
   }
 
-  const numCPUs = cpus().length;
-  const cpusToUse = numCPUs > 2 ? numCPUs - 1 : 1;
-  for (let i = 0; i < cpusToUse; i++) {
-    cluster.fork();
+
+  const allowedCPUS: number = process.argv.length > 2 ? parseInt(process.argv[2]) : -1;
+  if (allowedCPUS == -1) {
+    const numCPUs = cpus().length;
+    const cpusToUse = numCPUs > 2 ? numCPUs - 1 : 1;
+    console.log(`Defaulting to ${cpusToUse} threads`)
+    for (let i = 0; i < cpusToUse; i++) {
+      cluster.fork();
+    }
+  } else {
+    console.log(`Configured to use ${allowedCPUS} threads`)
+    for (let i = 0; i < allowedCPUS; i++) {
+      cluster.fork();
+    }
   }
+
 
   for (const id in cluster.workers) {
     // add progressListeners
